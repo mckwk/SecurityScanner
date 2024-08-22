@@ -37,6 +37,6 @@ def print_vulnerabilities(vulnerabilities):
         print("-" * 80)
 
 if __name__ == "__main__":
-    vendor = "Xiaomi Mi Mix 2"
+    vendor = "Yeelight"
     vulnerabilities = search_vulnerabilities(vendor)
     print_vulnerabilities(vulnerabilities)
