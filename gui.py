@@ -28,6 +28,7 @@ class GUI:
         self.root.rowconfigure(0, weight=1)
         self.root.rowconfigure(1, weight=1)
         self.root.rowconfigure(2, weight=0)
+        self.root.rowconfigure(3, weight=0)
 
     def _setup_frames(self):
         """Setup the frames for devices and vulnerabilities."""
@@ -51,6 +52,17 @@ class GUI:
 
         self.scan_button = ttk.Button(self.root, text="Start Scan", command=self.start_scan)
         self.scan_button.grid(row=2, column=0, padx=10, pady=10)
+
+        self.search_frame = ttk.LabelFrame(self.root, text="Search Vulnerabilities")
+        self.search_frame.grid(row=3, column=0, padx=10, pady=10, sticky="nsew")
+        self.search_frame.columnconfigure(0, weight=1)
+        self.search_frame.rowconfigure(0, weight=1)
+
+        self.search_entry = ttk.Entry(self.search_frame, width=50)
+        self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        self.search_button = ttk.Button(self.search_frame, text="Search", command=self.search_vulnerabilities)
+        self.search_button.grid(row=0, column=1, padx=10, pady=10)
 
     def display_vulnerabilities(self, vulnerabilities, ip, vendor):
         """
@@ -120,3 +132,14 @@ class GUI:
         if not vulnerabilities and device['model'] != "Unknown":
             vulnerabilities = self.vulnerability_checker.search_vulnerabilities(device['model'])
         self.display_vulnerabilities(vulnerabilities, device['ip'], keyword)
+
+    def search_vulnerabilities(self):
+        """Search for vulnerabilities based on user-inputted device name."""
+        device_name = self.search_entry.get().strip()
+        if not device_name:
+            return
+        self.vulnerability_text.delete('1.0', tk.END)
+        self.vulnerability_text.insert(tk.END, f"Searching vulnerabilities for: {device_name}\n")
+        self.vulnerability_text.insert(tk.END, "=" * 80 + "\n")
+        vulnerabilities = self.vulnerability_checker.search_vulnerabilities(device_name)
+        self.display_vulnerabilities(vulnerabilities, "N/A", device_name)
