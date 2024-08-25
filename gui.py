@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+from ttkthemes import ThemedTk
 import threading
 from network_scanner import NetworkScanner
 from vulnerability_checker import VulnerabilityChecker
@@ -10,7 +11,7 @@ class GUI:
         Initialize the GUI with the root window.
         
         Args:
-            root (tk.Tk): The root window.
+            root (ThemedTk): The root window.
         """
         self.root = root
         self._setup_root()
@@ -22,8 +23,7 @@ class GUI:
     def _setup_root(self):
         """Setup the root window configuration."""
         self.root.title("Network Scanner and Vulnerability Checker")
-        self.style = ttk.Style()
-        self.style.theme_use('clam')
+        self.root.set_theme('arc')
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         self.root.rowconfigure(1, weight=1)
@@ -44,8 +44,20 @@ class GUI:
 
     def _setup_widgets(self):
         """Setup the widgets for displaying devices and vulnerabilities."""
-        self.device_list = scrolledtext.ScrolledText(self.device_frame, width=80, height=20)
-        self.device_list.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.device_tree = ttk.Treeview(self.device_frame, columns=("IP", "MAC", "Vendor", "Model", "Vulnerabilities"), show="headings")
+        self.device_tree.heading("IP", text="IP Address")
+        self.device_tree.heading("MAC", text="MAC Address")
+        self.device_tree.heading("Vendor", text="Vendor")
+        self.device_tree.heading("Model", text="Model")
+        self.device_tree.heading("Vulnerabilities", text="Vulnerabilities")
+        self.device_tree.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.device_tree.bind("<<TreeviewSelect>>", self.on_device_select)
+
+        self.device_tree.column("IP", width=150)
+        self.device_tree.column("MAC", width=150)
+        self.device_tree.column("Vendor", width=150)
+        self.device_tree.column("Model", width=150)
+        self.device_tree.column("Vulnerabilities", width=0, stretch=tk.NO)
 
         self.vulnerability_text = scrolledtext.ScrolledText(self.vulnerability_frame, width=80, height=20)
         self.vulnerability_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
@@ -64,6 +76,17 @@ class GUI:
         self.search_button = ttk.Button(self.search_frame, text="Search", command=self.search_vulnerabilities)
         self.search_button.grid(row=0, column=1, padx=10, pady=10)
 
+    def on_device_select(self, event):
+        """Handle device selection from the treeview."""
+        selected_item = self.device_tree.selection()
+        if selected_item:
+            device = self.device_tree.item(selected_item[0], "values")
+            ip, mac, vendor, model, vulnerabilities = device
+            self.vulnerability_text.delete('1.0', tk.END)
+            self.vulnerability_text.insert(tk.END, f"Vulnerabilities for device {ip} (Vendor: {vendor}):\n")
+            self.vulnerability_text.insert(tk.END, "=" * 80 + "\n")
+            self.display_vulnerabilities(eval(vulnerabilities), ip, vendor)
+
     def display_vulnerabilities(self, vulnerabilities, ip, vendor):
         """
         Display vulnerabilities for a given device.
@@ -73,8 +96,6 @@ class GUI:
             ip (str): IP address of the device.
             vendor (str): Vendor of the device.
         """
-        self.vulnerability_text.insert(tk.END, f"\nVulnerabilities for device {ip} (Vendor: {vendor}):\n")
-        self.vulnerability_text.insert(tk.END, "=" * 80 + "\n")
         if not vulnerabilities:
             self.vulnerability_text.insert(tk.END, f"No vulnerabilities found for the device {ip} (Vendor: {vendor})\n")
             return
@@ -92,7 +113,7 @@ class GUI:
         """Start the network scan in a separate thread."""
         progress_window = self._create_progress_window()
         self.scan_button.config(state=tk.DISABLED)
-        self.device_list.delete('1.0', tk.END)
+        self.device_tree.delete(*self.device_tree.get_children())
         self.vulnerability_text.delete('1.0', tk.END)
 
         def scan():
@@ -124,14 +145,13 @@ class GUI:
     def _process_device(self, device):
         """Process each device found during the scan."""
         if device['vendor'] == "Unknown":
-            self.device_list.insert(tk.END, f"IP: {device['ip']}, MAC: {device['mac']}, Vendor: {device['vendor']}\n")
+            self.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], device['vendor'], device['model'], "[]"))
             return
         keyword = self.vulnerability_checker.extract_keyword(device['vendor'])
-        self.device_list.insert(tk.END, f"IP: {device['ip']}, MAC: {device['mac']}, Vendor: {keyword}\n")
         vulnerabilities = self.vulnerability_checker.search_vulnerabilities(keyword)
         if not vulnerabilities and device['model'] != "Unknown":
             vulnerabilities = self.vulnerability_checker.search_vulnerabilities(device['model'])
-        self.display_vulnerabilities(vulnerabilities, device['ip'], keyword)
+        self.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], keyword, device['model'], str(vulnerabilities)))
 
     def search_vulnerabilities(self):
         """Search for vulnerabilities based on user-inputted device name."""
