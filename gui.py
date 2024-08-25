@@ -1,18 +1,12 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext
-from ttkthemes import ThemedTk
 import threading
 from network_scanner import NetworkScanner
 from vulnerability_checker import VulnerabilityChecker
+from datetime import datetime
 
 class GUI:
     def __init__(self, root):
-        """
-        Initialize the GUI with the root window.
-        
-        Args:
-            root (ThemedTk): The root window.
-        """
         self.root = root
         self._setup_root()
         self._setup_frames()
@@ -21,7 +15,6 @@ class GUI:
         self.vulnerability_checker = VulnerabilityChecker()
 
     def _setup_root(self):
-        """Setup the root window configuration."""
         self.root.title("Network Scanner and Vulnerability Checker")
         self.root.set_theme('arc')
         self.root.columnconfigure(0, weight=1)
@@ -31,7 +24,6 @@ class GUI:
         self.root.rowconfigure(3, weight=0)
 
     def _setup_frames(self):
-        """Setup the frames for devices and vulnerabilities."""
         self.device_frame = ttk.LabelFrame(self.root, text="Devices")
         self.device_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         self.device_frame.columnconfigure(0, weight=1)
@@ -43,7 +35,6 @@ class GUI:
         self.vulnerability_frame.rowconfigure(0, weight=1)
 
     def _setup_widgets(self):
-        """Setup the widgets for displaying devices and vulnerabilities."""
         self.device_tree = ttk.Treeview(self.device_frame, columns=("IP", "MAC", "Vendor", "Model", "Vulnerabilities"), show="headings")
         self.device_tree.heading("IP", text="IP Address")
         self.device_tree.heading("MAC", text="MAC Address")
@@ -77,7 +68,6 @@ class GUI:
         self.search_button.grid(row=0, column=1, padx=10, pady=10)
 
     def on_device_select(self, event):
-        """Handle device selection from the treeview."""
         selected_item = self.device_tree.selection()
         if selected_item:
             device = self.device_tree.item(selected_item[0], "values")
@@ -88,14 +78,6 @@ class GUI:
             self.display_vulnerabilities(eval(vulnerabilities), ip, vendor)
 
     def display_vulnerabilities(self, vulnerabilities, ip, vendor):
-        """
-        Display vulnerabilities for a given device.
-        
-        Args:
-            vulnerabilities (list): List of vulnerabilities.
-            ip (str): IP address of the device.
-            vendor (str): Vendor of the device.
-        """
         if not vulnerabilities:
             self.vulnerability_text.insert(tk.END, f"No vulnerabilities found for the device {ip} (Vendor: {vendor})\n")
             return
@@ -104,13 +86,20 @@ class GUI:
             descriptions = vuln.get('cve', {}).get('descriptions', [])
             description = descriptions[0].get('value') if descriptions else "No description available"
             severity = vuln.get('cve', {}).get('metrics', {}).get('cvssMetricV2', [{}])[0].get('baseSeverity', 'Unknown')
+            published_date = vuln.get('cve', {}).get('published', 'Unknown')
+            try:
+                published_date = datetime.strptime(published_date, '%Y-%m-%dT%H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')
+            except ValueError:
+                pass
+            resolved = 'Yes' if vuln.get('cve', {}).get('lastModified', '') != published_date else 'No'
             self.vulnerability_text.insert(tk.END, f"CVE ID: {cve_id}\n")
             self.vulnerability_text.insert(tk.END, f"Description: {description}\n")
             self.vulnerability_text.insert(tk.END, f"Severity: {severity}\n")
+            self.vulnerability_text.insert(tk.END, f"Published Date: {published_date}\n")
+            self.vulnerability_text.insert(tk.END, f"Resolved: {resolved}\n")
             self.vulnerability_text.insert(tk.END, "-" * 80 + "\n")
 
     def start_scan(self):
-        """Start the network scan in a separate thread."""
         progress_window = self._create_progress_window()
         self.scan_button.config(state=tk.DISABLED)
         self.device_tree.delete(*self.device_tree.get_children())
@@ -126,7 +115,6 @@ class GUI:
         threading.Thread(target=scan).start()
 
     def _create_progress_window(self):
-        """Create a progress window to show scan progress."""
         progress_window = tk.Toplevel(self.root)
         progress_window.title("Scan in Progress")
         progress_window.geometry("300x100")
@@ -143,18 +131,17 @@ class GUI:
         return progress_window
 
     def _process_device(self, device):
-        """Process each device found during the scan."""
-        if device['vendor'] == "Unknown":
-            self.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], device['vendor'], device['model'], "[]"))
+        vendor = device['vendor']
+        if vendor == "Unknown":
+            self.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, device['model'], "[]"))
             return
-        keyword = self.vulnerability_checker.extract_keyword(device['vendor'])
+        keyword = self.vulnerability_checker.extract_keyword(vendor)
         vulnerabilities = self.vulnerability_checker.search_vulnerabilities(keyword)
         if not vulnerabilities and device['model'] != "Unknown":
             vulnerabilities = self.vulnerability_checker.search_vulnerabilities(device['model'])
-        self.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], keyword, device['model'], str(vulnerabilities)))
+        self.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, device['model'], str(vulnerabilities)))
 
     def search_vulnerabilities(self):
-        """Search for vulnerabilities based on user-inputted device name."""
         device_name = self.search_entry.get().strip()
         if not device_name:
             return
