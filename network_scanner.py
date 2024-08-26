@@ -17,6 +17,7 @@ class NetworkScanner:
             'mac': nm[host]['addresses']['mac'],
             'vendor': self._lookup_vendor(nm[host]['addresses']['mac']),
             'model': self._get_model(nm, host),
+            'product_id': self._get_product_id(nm, host),
         }
 
     def _lookup_vendor(self, mac_address):
@@ -35,6 +36,24 @@ class NetworkScanner:
                 for osmatch in nm[host]['osmatch']:
                     if 'name' in osmatch:
                         return osmatch['name']
+            if 'hostscript' in nm[host]:
+                for script in nm[host]['hostscript']:
+                    if 'output' in script:
+                        return script['output']
+            return "Unknown"
+        except Exception:
+            return "Unknown"
+
+    def _get_product_id(self, nm, host):
+        try:
+            if 'osclass' in nm[host]:
+                for osclass in nm[host]['osclass']:
+                    if 'cpe' in osclass:
+                        return osclass['cpe']
+            if 'osmatch' in nm[host]:
+                for osmatch in nm[host]['osmatch']:
+                    if 'cpe' in osmatch:
+                        return osmatch['cpe']
             if 'hostscript' in nm[host]:
                 for script in nm[host]['hostscript']:
                     if 'output' in script:
