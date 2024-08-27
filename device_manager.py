@@ -49,15 +49,14 @@ class DeviceManager:
             vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(device['model'])
         self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, device['model'], device['product_id'], str(vulnerabilities)))
 
-    def search_vulnerabilities(self):
-        device_name = self.gui.search_entry.get().strip()
-        if not device_name:
+    def search_vulnerabilities(self, user_input):
+        if not user_input:
             return
         self.gui.vulnerability_text.delete('1.0', tk.END)
-        self.gui.vulnerability_text.insert(tk.END, f"Searching vulnerabilities for: {device_name}\n")
+        self.gui.vulnerability_text.insert(tk.END, f"Searching vulnerabilities for: {user_input}\n")
         self.gui.vulnerability_text.insert(tk.END, "=" * 80 + "\n")
-        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(device_name)
-        self.display_vulnerabilities(vulnerabilities, "N/A", device_name)
+        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(user_input)
+        self.display_vulnerabilities(vulnerabilities, "N/A", user_input)
 
     def on_double_click(self, event):
         item = self.gui.device_tree.selection()[0]
