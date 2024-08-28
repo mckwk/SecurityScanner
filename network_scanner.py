@@ -8,7 +8,8 @@ class NetworkScanner:
 
     def scan_network(self, target_ip):
         nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
-        nm.scan(hosts=target_ip, arguments='-O')
+        # Use faster scan techniques and disable DNS resolution
+        nm.scan(hosts=target_ip, arguments='-O -T4 -n')
         return [self._get_device_info(nm, host) for host in nm.all_hosts() if 'mac' in nm[host]['addresses']]
 
     def _get_device_info(self, nm, host):

@@ -40,14 +40,13 @@ class DeviceManager:
 
     def process_device(self, device):
         vendor = device['vendor']
+        model = device['model']
         if vendor == "Unknown":
-            self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, device['model'], device['product_id'], "[]"))
+            self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, model, device['product_id'], "[]"))
             return
         keyword = self.gui.vulnerability_checker.extract_keyword(vendor)
-        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(keyword)
-        if not vulnerabilities and device['model'] != "Unknown":
-            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(device['model'])
-        self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, device['model'], device['product_id'], str(vulnerabilities)))
+        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(model, keyword)
+        self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, model, device['product_id'], str(vulnerabilities)))
 
     def search_vulnerabilities(self, user_input):
         if not user_input:
@@ -55,7 +54,8 @@ class DeviceManager:
         self.gui.vulnerability_text.delete('1.0', tk.END)
         self.gui.vulnerability_text.insert(tk.END, f"Searching vulnerabilities for: {user_input}\n")
         self.gui.vulnerability_text.insert(tk.END, "=" * 80 + "\n")
-        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(user_input)
+        # Assuming user_input is a model, and vendor is unknown in this context
+        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(user_input, "Unknown")
         self.display_vulnerabilities(vulnerabilities, "N/A", user_input)
 
     def on_double_click(self, event):
@@ -73,7 +73,7 @@ class DeviceManager:
                 entry.destroy()
                 # Perform a new scan using the product ID
                 self.gui.vulnerability_text.delete('1.0', tk.END)  # Clear the vulnerabilities subwindow
-                vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(new_value)
+                vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(new_value, "Unknown")
                 self.gui.device_tree.set(item, '#6', str(vulnerabilities))
                 self.display_vulnerabilities(vulnerabilities, "N/A", new_value)  # Refresh the vulnerabilities subwindow
 
