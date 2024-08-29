@@ -1,10 +1,24 @@
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
+import json
+import os
 
 class DeviceManager:
     def __init__(self, gui):
         self.gui = gui
+        self.product_ids_file = "product_ids.json"
+        self.product_ids = self.load_product_ids()
+
+    def load_product_ids(self):
+        if os.path.exists(self.product_ids_file):
+            with open(self.product_ids_file, "r") as file:
+                return json.load(file)
+        return {}
+
+    def save_product_ids(self):
+        with open(self.product_ids_file, "w") as file:
+            json.dump(self.product_ids, file)
 
     def on_device_select(self, event):
         selected_item = self.gui.device_tree.selection()
@@ -41,12 +55,19 @@ class DeviceManager:
     def process_device(self, device):
         vendor = device['vendor']
         model = device['model']
+        product_id = self.product_ids.get(device['mac'], device['product_id'])
         if vendor == "Unknown":
-            self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, model, device['product_id'], "[]"))
+            self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, model, product_id, "[]"))
             return
-        keyword = self.gui.vulnerability_checker.extract_keyword(vendor)
-        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(model, keyword)
-        self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, model, device['product_id'], str(vulnerabilities)))
+
+        # Use product ID for vulnerability search if it is not "unknown"
+        if product_id.lower() != "unknown":
+            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(model, vendor, product_id)
+        else:
+            keyword = self.gui.vulnerability_checker.extract_keyword(vendor)
+            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(model, keyword)
+
+        self.gui.device_tree.insert("", tk.END, values=(device['ip'], device['mac'], vendor, model, product_id, str(vulnerabilities)))
 
     def search_vulnerabilities(self, user_input):
         if not user_input:
@@ -71,6 +92,10 @@ class DeviceManager:
                 new_value = entry.get()
                 self.gui.device_tree.set(item, column, new_value)
                 entry.destroy()
+                # Save the new product ID
+                mac = self.gui.device_tree.item(item, "values")[1]
+                self.product_ids[mac] = new_value
+                self.save_product_ids()
                 # Perform a new scan using the product ID
                 self.gui.vulnerability_text.delete('1.0', tk.END)  # Clear the vulnerabilities subwindow
                 vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(new_value, "Unknown")
