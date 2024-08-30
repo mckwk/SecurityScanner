@@ -6,6 +6,7 @@ from vulnerability_checker import VulnerabilityChecker
 from datetime import datetime
 from device_manager import DeviceManager
 from results_exporter import ResultsExporter
+from progress_window import ProgressWindow
 
 class GUI:
     def __init__(self, root):
@@ -105,7 +106,7 @@ class GUI:
             self.search_by_input()
 
     def start_scan(self):
-        progress_window = self._create_progress_window("Scan in Progress")
+        progress_window = ProgressWindow(self.root, "Scan in Progress")
         self.scan_button.config(state=tk.DISABLED)
         self.device_tree.delete(*self.device_tree.get_children())
         self.vulnerability_text.delete('1.0', tk.END)
@@ -121,7 +122,7 @@ class GUI:
 
     def search_by_input(self):
         user_input = self.search_entry.get()
-        progress_window = self._create_progress_window("Search in Progress")
+        progress_window = ProgressWindow(self.root, "Search in Progress")
         self.search_button.config(state=tk.DISABLED)
 
         def search():
@@ -130,22 +131,6 @@ class GUI:
             self.search_button.config(state=tk.NORMAL)
 
         threading.Thread(target=search).start()
-
-    def _create_progress_window(self, title):
-        progress_window = tk.Toplevel(self.root)
-        progress_window.title(title)
-        progress_window.geometry("300x100")
-        progress_window.resizable(False, False)
-        self.root.update_idletasks()
-        x = (self.root.winfo_width() // 2) - (300 // 2)
-        y = (self.root.winfo_height() // 2) - (100 // 2)
-        progress_window.geometry(f"+{self.root.winfo_x() + x}+{self.root.winfo_y() + y}")
-        label = ttk.Label(progress_window, text=f"{title}...")
-        label.pack(pady=10)
-        progress_bar = ttk.Progressbar(progress_window, mode='indeterminate')
-        progress_bar.pack(pady=10)
-        progress_bar.start(interval=10)
-        return progress_window
 
     def export_results(self):
         self.results_exporter.export_results()
