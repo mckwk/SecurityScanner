@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import threading
+import json
 from network_scanner import NetworkScanner
 from vulnerability_checker import VulnerabilityChecker
 from datetime import datetime
@@ -18,6 +19,7 @@ class GUI:
         self.results_exporter = ResultsExporter(self.mode_combobox, self.device_tree, self.vulnerability_text)
         self.network_scanner = NetworkScanner(nmap_path=[r"C:\Nmap\nmap.exe"])
         self.vulnerability_checker = VulnerabilityChecker()
+        self.load_devices_from_json()  # Load devices from JSON file at startup
         self.on_mode_change()  # Ensure the UI is fully loaded before changing modes
 
     def _setup_root(self):
@@ -46,8 +48,13 @@ class GUI:
         self.search_frame.columnconfigure(0, weight=1)
         self.search_frame.rowconfigure(0, weight=1)
 
+        self.notification_frame = ttk.LabelFrame(self.root, text="Notification System")
+        self.notification_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.notification_frame.columnconfigure(0, weight=1)
+        self.notification_frame.rowconfigure(0, weight=1)
+
     def _setup_widgets(self):
-        self.mode_combobox = ttk.Combobox(self.root, values=["Network Scan", "Search by Input"], state="readonly")
+        self.mode_combobox = ttk.Combobox(self.root, values=["Network Scan", "Search by Input", "Notification System"], state="readonly")
         self.mode_combobox.current(0)
         self.mode_combobox.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
         self.mode_combobox.bind("<<ComboboxSelected>>", self.on_mode_change)
@@ -86,6 +93,29 @@ class GUI:
         self.search_button = ttk.Button(self.search_frame, text="Search", command=self.search_by_input)
         self.search_button.grid(row=0, column=1, padx=10, pady=10)
 
+        self.add_device_entry = ttk.Entry(self.notification_frame, width=50)
+        self.add_device_entry.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        self.add_device_button = ttk.Button(self.notification_frame, text="Add Device", command=self.add_device_to_notification)
+        self.add_device_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+
+        self.delete_device_button = ttk.Button(self.notification_frame, text="Delete Device", command=self.delete_device_from_notification)
+        self.delete_device_button.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+
+        self.notification_tree = ttk.Treeview(self.notification_frame, columns=("IP", "MAC", "Vendor", "Model", "Product ID"), show="tree")
+        self.notification_tree.heading("IP", text="IP Address")
+        self.notification_tree.heading("MAC", text="MAC Address")
+        self.notification_tree.heading("Vendor", text="Vendor")
+        self.notification_tree.heading("Model", text="Model")
+        self.notification_tree.heading("Product ID", text="Product ID")
+        self.notification_tree.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.notification_tree.column("IP", width=150, anchor="w")
+        self.notification_tree.column("MAC", width=150, anchor="w")
+        self.notification_tree.column("Vendor", width=150, anchor="w")
+        self.notification_tree.column("Model", width=150, anchor="w")
+        self.notification_tree.column("Product ID", width=150, anchor="w")
+
     def on_mode_change(self, event=None):
         selected_mode = self.mode_combobox.get()
         self.vulnerability_text.delete('1.0', tk.END)  # Clear the content of the vulnerabilities window
@@ -93,10 +123,24 @@ class GUI:
             self.device_frame.grid()
             self.vulnerability_frame.grid()
             self.search_frame.grid_remove()
+            self.notification_frame.grid_remove()
+            self.scan_button.grid()
+            self.export_button.grid()
         elif selected_mode == "Search by Input":
             self.device_frame.grid_remove()
             self.vulnerability_frame.grid()
             self.search_frame.grid()
+            self.notification_frame.grid_remove()
+            self.scan_button.grid()
+            self.export_button.grid()
+        elif selected_mode == "Notification System":
+            self.device_frame.grid_remove()
+            self.vulnerability_frame.grid_remove()
+            self.search_frame.grid_remove()
+            self.notification_frame.grid()
+            self.load_devices_from_json()  # Load devices from JSON file when switching to Notification System mode
+            self.scan_button.grid_remove()
+            self.export_button.grid_remove()
 
     def start_action(self):
         selected_mode = self.mode_combobox.get()
@@ -134,3 +178,33 @@ class GUI:
 
     def export_results(self):
         self.results_exporter.export_results()
+
+    def add_device_to_notification(self):
+        device_info = self.add_device_entry.get()
+        if device_info:
+            device_data = device_info.split(',')
+            self.notification_tree.insert('', 'end', values=device_data)
+            self.save_devices_to_json()
+
+    def delete_device_from_notification(self):
+        selected_item = self.notification_tree.selection()
+        if selected_item:
+            self.notification_tree.delete(selected_item)
+            self.save_devices_to_json()
+
+    def save_devices_to_json(self):
+        devices = []
+        for item in self.notification_tree.get_children():
+            devices.append(self.notification_tree.item(item, 'values'))
+        with open('devices.json', 'w') as f:
+            json.dump(devices, f, indent=4)
+
+    def load_devices_from_json(self):
+        try:
+            with open('devices.json', 'r') as f:
+                devices = json.load(f)
+                self.notification_tree.delete(*self.notification_tree.get_children())
+                for device in devices:
+                    self.notification_tree.insert('', 'end', values=device)
+        except FileNotFoundError:
+            pass

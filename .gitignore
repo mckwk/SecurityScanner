@@ -3,5 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Ignore product_ids.json file
+# Ignore product_ids.json and devices.json files
 product_ids.json
+devices.json
