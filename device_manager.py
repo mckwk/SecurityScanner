@@ -7,7 +7,8 @@ import os
 class DeviceManager:
     def __init__(self, gui):
         self.gui = gui
-        self.product_ids_file = "product_ids.json"
+        self.data_folder = 'user_data'
+        self.product_ids_file = os.path.join(self.data_folder, "product_ids.json")
         self.product_ids = self.load_product_ids()
 
     def load_product_ids(self):
@@ -17,6 +18,8 @@ class DeviceManager:
         return {}
 
     def save_product_ids(self):
+        if not os.path.exists(self.data_folder):
+            os.makedirs(self.data_folder)
         with open(self.product_ids_file, "w") as file:
             json.dump(self.product_ids, file)
 
