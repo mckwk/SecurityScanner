@@ -25,20 +25,25 @@ class NotificationManager:
         self.add_device_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
         self.delete_device_button = ttk.Button(self.notification_frame, text="Delete Device", command=self.delete_device_from_notification)
-        self.delete_device_button.grid(row=1, column=1, padx=10, pady=10, sticky="w")
-
-        self.send_notifications_button = ttk.Button(self.notification_frame, text="Send Notifications", command=self.send_notifications)
-        self.send_notifications_button.grid(row=2, column=0, padx=10, pady=10, sticky="ew", columnspan=2)
+        self.delete_device_button.grid(row=0, column=2, padx=10, pady=10, sticky="w")
 
         self.notification_tree = ttk.Treeview(self.notification_frame, columns=("Device Name",), show="headings")
         self.notification_tree.heading("Device Name", text="Device Name")
-        self.notification_tree.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", columnspan=2)
+        self.notification_tree.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
 
         self.notification_tree.column("Device Name", width=300, anchor="w")
+
+        self.send_notifications_button = ttk.Button(self.notification_frame, text="Send Notifications", command=self.send_notifications)
+        self.send_notifications_button.grid(row=2, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
 
     def add_device_to_notification(self):
         device_name = self.add_device_entry.get()
         if device_name:
+            # Check for duplicate entries
+            for item in self.notification_tree.get_children():
+                if self.notification_tree.item(item, 'values')[0] == device_name:
+                    messagebox.showerror("Error", "Device name already exists")
+                    return
             self.notification_tree.insert('', 'end', values=(device_name,))
             self.save_devices_to_json()
         else:
@@ -76,7 +81,7 @@ class NotificationManager:
         vulnerabilities = []
         for item in self.notification_tree.get_children():
             device_name = self.notification_tree.item(item, 'values')[0]
-            # Search for vulnerabilities using the device name
+            # Search for vulnerabilities using the device name as-is
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(model=device_name, vendor="unknown", max_results=10)
             for vulnerability in found_vulnerabilities:
                 cve = vulnerability.get('cve', {})
@@ -93,27 +98,27 @@ class NotificationManager:
         threading.Thread(target=self._send_notifications, args=(progress_window,)).start()
 
     def _send_notifications(self, progress_window):
-      vulnerabilities = self.gather_vulnerabilities_summary()
-      progress_window.destroy()
-      if vulnerabilities:
-          for device_name, cve_id, description in vulnerabilities:
-              # Calculate the maximum length for the description
-              max_description_length = 256 - len(cve_id) - len(device_name) - 100  # Adjust for other parts of the message
-              truncated_description = (description[:max_description_length] + '...') if len(description) > max_description_length else description
-              notification.notify(
-                  title=f"Vulnerability found in {device_name}",
-                  message=f"{cve_id}: {truncated_description}",
-                  timeout=10,
-                  app_name="Security Scanner"
-              )
-              # Store the full description to show later
-              self.show_full_description(cve_id, description)
-      else:
-          notification.notify(
-              title="No Vulnerabilities Found",
-              message="No vulnerabilities were found for the devices this year.",
-              timeout=10
-          )
+        vulnerabilities = self.gather_vulnerabilities_summary()
+        progress_window.destroy()
+        if vulnerabilities:
+            for device_name, cve_id, description in vulnerabilities:
+                # Calculate the maximum length for the description
+                max_description_length = 256 - len(cve_id) - len(device_name) - 100  # Adjust for other parts of the message
+                truncated_description = (description[:max_description_length] + '...') if len(description) > max_description_length else description
+                notification.notify(
+                    title=f"Vulnerability found in {device_name}",
+                    message=f"{cve_id}: {truncated_description}",
+                    timeout=10,
+                    app_name="Security Scanner"
+                )
+                # Store the full description to show later
+                self.show_full_description(cve_id, description)
+        else:
+            notification.notify(
+                title="No Vulnerabilities Found",
+                message="No vulnerabilities were found for the devices this year.",
+                timeout=10
+            )
 
     def show_full_description(self, cve_id, description):
         # Display the full description in a message box
