@@ -29,9 +29,8 @@ class NotificationManager:
 
         self.notification_tree = ttk.Treeview(self.notification_frame, columns=("Device Name",), show="headings")
         self.notification_tree.heading("Device Name", text="Device Name")
-        self.notification_tree.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
-
         self.notification_tree.column("Device Name", width=300, anchor="w")
+        self.notification_tree.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
 
         self.send_notifications_button = ttk.Button(self.notification_frame, text="Send Notifications", command=self.send_notifications)
         self.send_notifications_button.grid(row=2, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
@@ -39,13 +38,11 @@ class NotificationManager:
     def add_device_to_notification(self):
         device_name = self.add_device_entry.get()
         if device_name:
-            # Check for duplicate entries
-            for item in self.notification_tree.get_children():
-                if self.notification_tree.item(item, 'values')[0] == device_name:
-                    messagebox.showerror("Error", "Device name already exists")
-                    return
-            self.notification_tree.insert('', 'end', values=(device_name,))
-            self.save_devices_to_json()
+            if any(self.notification_tree.item(item, 'values')[0] == device_name for item in self.notification_tree.get_children()):
+                messagebox.showerror("Error", "Device name already exists")
+            else:
+                self.notification_tree.insert('', 'end', values=(device_name,))
+                self.save_devices_to_json()
         else:
             messagebox.showerror("Error", "Device name cannot be empty")
 
@@ -56,40 +53,33 @@ class NotificationManager:
             self.save_devices_to_json()
 
     def save_devices_to_json(self):
-        if not os.path.exists(self.data_folder):
-            os.makedirs(self.data_folder)
-        devices = []
-        for item in self.notification_tree.get_children():
-            devices.append(self.notification_tree.item(item, 'values')[0])
+        os.makedirs(self.data_folder, exist_ok=True)
+        devices = [self.notification_tree.item(item, 'values')[0] for item in self.notification_tree.get_children()]
         with open(self.data_file, 'w') as f:
             json.dump(devices, f, indent=4)
 
     def load_devices_from_json(self):
-        if not os.path.exists(self.data_file):
-            return
-        try:
-            with open(self.data_file, 'r') as f:
-                devices = json.load(f)
-                self.notification_tree.delete(*self.notification_tree.get_children())
-                for device in devices:
-                    self.notification_tree.insert('', 'end', values=(device,))
-        except FileNotFoundError:
-            pass
+        if os.path.exists(self.data_file):
+            try:
+                with open(self.data_file, 'r') as f:
+                    devices = json.load(f)
+                    self.notification_tree.delete(*self.notification_tree.get_children())
+                    for device in devices:
+                        self.notification_tree.insert('', 'end', values=(device,))
+            except FileNotFoundError:
+                pass
 
     def gather_vulnerabilities_summary(self):
         current_year = datetime.now().year
         vulnerabilities = []
         for item in self.notification_tree.get_children():
             device_name = self.notification_tree.item(item, 'values')[0]
-            # Search for vulnerabilities using the device name as-is
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(model=device_name, vendor="unknown", max_results=10)
             for vulnerability in found_vulnerabilities:
                 cve = vulnerability.get('cve', {})
-                published_date = cve.get('published', '')
-                if published_date.startswith(str(current_year)):
+                if cve.get('published', '').startswith(str(current_year)):
                     cve_id = cve.get('id', 'Unknown ID')
-                    description_data = cve.get('descriptions', [])
-                    description = description_data[0]['value'] if description_data else 'No description available'
+                    description = cve.get('descriptions', [{}])[0].get('value', 'No description available')
                     vulnerabilities.append((device_name, cve_id, description))
         return vulnerabilities
 
@@ -102,8 +92,7 @@ class NotificationManager:
         progress_window.destroy()
         if vulnerabilities:
             for device_name, cve_id, description in vulnerabilities:
-                # Calculate the maximum length for the description
-                max_description_length = 256 - len(cve_id) - len(device_name) - 100  # Adjust for other parts of the message
+                max_description_length = 256 - len(cve_id) - len(device_name) - 100
                 truncated_description = (description[:max_description_length] + '...') if len(description) > max_description_length else description
                 notification.notify(
                     title=f"Vulnerability found in {device_name}",
@@ -111,7 +100,6 @@ class NotificationManager:
                     timeout=10,
                     app_name="Security Scanner"
                 )
-                # Store the full description to show later
                 self.show_full_description(cve_id, description)
         else:
             notification.notify(
@@ -121,5 +109,4 @@ class NotificationManager:
             )
 
     def show_full_description(self, cve_id, description):
-        # Display the full description in a message box
         messagebox.showinfo(title=f"Full Description for {cve_id}", message=description)
