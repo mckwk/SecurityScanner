@@ -136,6 +136,7 @@ class NotificationManager:
             self.logger.info(f"Scan started at {start_time}")
             vulnerabilities = self.gather_vulnerabilities_summary()
             progress_window.destroy()
+            new_vulnerabilities = []
             if vulnerabilities:
                 for vulnerability in vulnerabilities:
                     device_name = vulnerability['device_name']
@@ -143,16 +144,23 @@ class NotificationManager:
                     description = vulnerability['description']
                     max_description_length = 256 - len(cve_id) - len(device_name) - 100
                     truncated_description = (description[:max_description_length] + '...') if len(description) > max_description_length else description
-                    notification.notify(
-                        title=f"Vulnerability found in {device_name}",
-                        message=f"{cve_id}: {truncated_description}",
-                        timeout=10,
-                        app_name="Security Scanner"
-                    )
                     if not any(vuln['id'] == cve_id for vuln in self.notification_history):
+                        notification.notify(
+                            title=f"Vulnerability found in {device_name}",
+                            message=f"{cve_id}: {truncated_description}",
+                            timeout=10,
+                            app_name="Security Scanner"
+                        )
                         self.notification_history.append(vulnerability)
+                        new_vulnerabilities.append(vulnerability)
                         self.logger.info(f"Vulnerability found in {device_name}:\nCVE ID: {cve_id}\nDescription: {description}\n")
                 self.save_notification_history()
+                if not new_vulnerabilities:
+                    notification.notify(
+                        title="No New Vulnerabilities Found",
+                        message="All vulnerabilities were previously sent.",
+                        timeout=10
+                    )
                 self.logger.info("Notifications sent for found vulnerabilities.")
             else:
                 notification.notify(
