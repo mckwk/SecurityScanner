@@ -10,6 +10,8 @@ import threading
 import webbrowser
 from logger_manager import LoggerManager
 from notification_history_window import NotificationHistoryWindow
+from notification_widgets import NotificationWidgets
+from data_manager import DataManager
 
 class NotificationManager:
     def __init__(self, notification_frame):
@@ -21,87 +23,58 @@ class NotificationManager:
         self.logger_manager = LoggerManager(self.log_file)
         self.logger = self.logger_manager.get_logger()
         self.vulnerability_checker = VulnerabilityChecker()
-        self.notification_history = self.load_notification_history()
-        self._setup_widgets()
+        self.data_manager = DataManager(self.data_folder, self.data_file, self.history_file, self.logger)
+        self.notification_history = self.data_manager.load_notification_history()
+        self.widgets = NotificationWidgets(
+            notification_frame,
+            self.add_device_to_notification,
+            self.delete_device_from_notification,
+            self.send_notifications,
+            self.open_log_file,
+            self.open_notification_history
+        )
         self.load_devices_from_json()
 
-    def _setup_widgets(self):
-        self.add_device_entry = ttk.Entry(self.notification_frame, width=50)
-        self.add_device_entry.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-        self.add_device_entry.bind("<Return>", lambda event: self.add_device_to_notification())
-
-        self.add_device_button = ttk.Button(self.notification_frame, text="Add Device", command=self.add_device_to_notification)
-        self.add_device_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
-
-        self.delete_device_button = ttk.Button(self.notification_frame, text="Delete Device", command=self.delete_device_from_notification)
-        self.delete_device_button.grid(row=0, column=2, padx=10, pady=10, sticky="w")
-
-        self.notification_tree = ttk.Treeview(self.notification_frame, columns=("Device Name",), show="headings")
-        self.notification_tree.heading("Device Name", text="Device Name")
-        self.notification_tree.column("Device Name", width=300, anchor="w")
-        self.notification_tree.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
-
-        self.send_notifications_button = ttk.Button(self.notification_frame, text="Send Notifications", command=self.send_notifications)
-        self.send_notifications_button.grid(row=2, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
-
-        self.open_log_button = ttk.Button(self.notification_frame, text="Open Log File", command=self.open_log_file)
-        self.open_log_button.grid(row=3, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
-
-        self.open_history_button = ttk.Button(self.notification_frame, text="Open Notification History", command=self.open_notification_history)
-        self.open_history_button.grid(row=4, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
-
-        self.notification_frame.grid_rowconfigure(1, weight=1)
-        self.notification_frame.grid_columnconfigure(0, weight=1)
-
     def add_device_to_notification(self):
-        device_name = self.add_device_entry.get().strip()
+        device_name = self.widgets.add_device_entry.get().strip()
         if not device_name:
             messagebox.showerror("Error", "Device name cannot be empty")
             return
 
-        if any(self.notification_tree.item(item, 'values')[0] == device_name for item in self.notification_tree.get_children()):
+        if any(self.widgets.notification_tree.item(item, 'values')[0] == device_name for item in self.widgets.notification_tree.get_children()):
             messagebox.showerror("Error", "Device name already exists")
             return
 
-        self.notification_tree.insert('', 'end', values=(device_name,))
+        self.widgets.notification_tree.insert('', 'end', values=(device_name,))
         self.save_devices_to_json()
-        self.add_device_entry.delete(0, tk.END)
+        self.widgets.add_device_entry.delete(0, tk.END)
         self.logger.info(f"Device '{device_name}' added to notification list.")
 
     def delete_device_from_notification(self):
-        selected_item = self.notification_tree.selection()
+        selected_item = self.widgets.notification_tree.selection()
         if not selected_item:
             messagebox.showerror("Error", "No device selected")
             return
 
-        self.notification_tree.delete(selected_item)
+        self.widgets.notification_tree.delete(selected_item)
         self.save_devices_to_json()
         self.logger.info(f"Device '{selected_item}' deleted from notification list.")
 
     def save_devices_to_json(self):
-        os.makedirs(self.data_folder, exist_ok=True)
-        devices = [self.notification_tree.item(item, 'values')[0] for item in self.notification_tree.get_children()]
-        with open(self.data_file, 'w') as f:
-            json.dump(devices, f, indent=4)
-        self.logger.info("Devices saved to JSON file.")
+        devices = [self.widgets.notification_tree.item(item, 'values')[0] for item in self.widgets.notification_tree.get_children()]
+        self.data_manager.save_devices_to_json(devices)
 
     def load_devices_from_json(self):
-        if os.path.exists(self.data_file):
-            try:
-                with open(self.data_file, 'r') as f:
-                    devices = json.load(f)
-                    self.notification_tree.delete(*self.notification_tree.get_children())
-                    for device in devices:
-                        self.notification_tree.insert('', 'end', values=(device,))
-                self.logger.info("Devices loaded from JSON file.")
-            except (FileNotFoundError, json.JSONDecodeError) as e:
-                self.logger.error(f"Error loading devices from JSON file: {e}")
+        devices = self.data_manager.load_devices_from_json()
+        self.widgets.notification_tree.delete(*self.widgets.notification_tree.get_children())
+        for device in devices:
+            self.widgets.notification_tree.insert('', 'end', values=(device,))
 
     def gather_vulnerabilities_summary(self):
         current_year = datetime.now().year
         vulnerabilities = []
-        for item in self.notification_tree.get_children():
-            device_name = self.notification_tree.item(item, 'values')[0]
+        for item in self.widgets.notification_tree.get_children():
+            device_name = self.widgets.notification_tree.item(item, 'values')[0]
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(model=device_name, vendor="unknown", max_results=10)
             for vulnerability in found_vulnerabilities:
                 cve = vulnerability.get('cve', {})
@@ -180,20 +153,10 @@ class NotificationManager:
             self.logger.error(f"Error sending notifications: {e}")
 
     def save_notification_history(self):
-        os.makedirs(self.data_folder, exist_ok=True)
-        unique_history = {v['id']: v for v in self.notification_history}.values()
-        with open(self.history_file, 'w') as f:
-            json.dump(list(unique_history), f, indent=4)
-        self.logger.info("Notification history saved to JSON file.")
+        self.data_manager.save_notification_history(self.notification_history)
 
     def load_notification_history(self):
-        if os.path.exists(self.history_file):
-            try:
-                with open(self.history_file, 'r') as f:
-                    return json.load(f)
-            except (FileNotFoundError, json.JSONDecodeError) as e:
-                self.logger.error(f"Error loading notification history from JSON file: {e}")
-        return []
+        return self.data_manager.load_notification_history()
 
     def open_log_file(self):
         log_file_path = os.path.abspath(self.log_file)
