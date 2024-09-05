@@ -7,14 +7,9 @@ from plyer import notification
 from vulnerability_checker import VulnerabilityChecker
 from progress_window import ProgressWindow
 import threading
-import logging
 import webbrowser
-import io
-
-class CustomFilter(logging.Filter):
-    def filter(self, record):
-        # Exclude specific log messages
-        return "Starting new HTTPS connection" not in record.getMessage()
+from logger_manager import LoggerManager
+from notification_history_window import NotificationHistoryWindow
 
 class NotificationManager:
     def __init__(self, notification_frame):
@@ -22,35 +17,13 @@ class NotificationManager:
         self.data_folder = 'user_data'
         self.data_file = os.path.join(self.data_folder, 'devices.json')
         self.log_file = os.path.join(self.data_folder, 'notification_manager.log')
-        self.log_stream = io.StringIO()
-        self._setup_logging()
+        self.history_file = os.path.join(self.data_folder, 'notification_history.json')
+        self.logger_manager = LoggerManager(self.log_file)
+        self.logger = self.logger_manager.get_logger()
         self.vulnerability_checker = VulnerabilityChecker()
+        self.notification_history = self.load_notification_history()
         self._setup_widgets()
         self.load_devices_from_json()
-
-    def _setup_logging(self):
-        os.makedirs(self.data_folder, exist_ok=True)
-        if not os.path.exists(self.log_file):
-            with open(self.log_file, 'w') as f:
-                pass  # Create the file if it doesn't exist
-
-        # Create a custom logger
-        self.logger = logging.getLogger('NotificationManager')
-        self.logger.setLevel(logging.DEBUG)
-
-        # Create handlers
-        stream_handler = logging.StreamHandler(self.log_stream)
-        stream_handler.setLevel(logging.DEBUG)
-        stream_handler.addFilter(CustomFilter())
-
-        # Create formatters and add it to handlers
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        stream_handler.setFormatter(formatter)
-
-        # Add handlers to the logger
-        self.logger.addHandler(stream_handler)
-        self.logger.info("\n" + "_" * 50 + "\n")
-        self.logger.debug("Logging setup complete.")
 
     def _setup_widgets(self):
         self.add_device_entry = ttk.Entry(self.notification_frame, width=50)
@@ -73,6 +46,9 @@ class NotificationManager:
 
         self.open_log_button = ttk.Button(self.notification_frame, text="Open Log File", command=self.open_log_file)
         self.open_log_button.grid(row=3, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
+
+        self.open_history_button = ttk.Button(self.notification_frame, text="Open Notification History", command=self.open_notification_history)
+        self.open_history_button.grid(row=4, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
 
         self.notification_frame.grid_rowconfigure(1, weight=1)
         self.notification_frame.grid_columnconfigure(0, weight=1)
@@ -132,7 +108,21 @@ class NotificationManager:
                 if cve.get('published', '').startswith(str(current_year)):
                     cve_id = cve.get('id', 'Unknown ID')
                     description = cve.get('descriptions', [{}])[0].get('value', 'No description available')
-                    vulnerabilities.append((device_name, cve_id, description))
+                    severity = cve.get('severity', 'Unknown')
+                    impact_score = cve.get('impactScore', 'Unknown')
+                    exploitability_score = cve.get('exploitabilityScore', 'Unknown')
+                    references = [ref.get('url', 'No URL') for ref in cve.get('references', [])]
+                    vulnerabilities.append({
+                        'device_name': device_name,
+                        'id': cve_id,
+                        'description': description,
+                        'published': cve.get('published', 'Unknown'),
+                        'last_modified': cve.get('lastModified', 'Unknown'),
+                        'severity': severity,
+                        'impact_score': impact_score,
+                        'exploitability_score': exploitability_score,
+                        'references': references
+                    })
         return vulnerabilities
 
     def send_notifications(self):
@@ -147,7 +137,10 @@ class NotificationManager:
             vulnerabilities = self.gather_vulnerabilities_summary()
             progress_window.destroy()
             if vulnerabilities:
-                for device_name, cve_id, description in vulnerabilities:
+                for vulnerability in vulnerabilities:
+                    device_name = vulnerability['device_name']
+                    cve_id = vulnerability['id']
+                    description = vulnerability['description']
                     max_description_length = 256 - len(cve_id) - len(device_name) - 100
                     truncated_description = (description[:max_description_length] + '...') if len(description) > max_description_length else description
                     notification.notify(
@@ -156,7 +149,10 @@ class NotificationManager:
                         timeout=10,
                         app_name="Security Scanner"
                     )
-                    self.logger.info(f"Vulnerability found in {device_name}:\nCVE ID: {cve_id}\nDescription: {description}\n")
+                    if not any(vuln['id'] == cve_id for vuln in self.notification_history):
+                        self.notification_history.append(vulnerability)
+                        self.logger.info(f"Vulnerability found in {device_name}:\nCVE ID: {cve_id}\nDescription: {description}\n")
+                self.save_notification_history()
                 self.logger.info("Notifications sent for found vulnerabilities.")
             else:
                 notification.notify(
@@ -169,21 +165,31 @@ class NotificationManager:
             self.logger.info(f"Scan ended at {end_time}")
             self.logger.info(f"Total scan duration: {end_time - start_time}")
             self.logger.debug("Flushing logs.")
-            self._prepend_log_file()
+            self.logger_manager.prepend_log_file()
         except Exception as e:
             progress_window.destroy()
             messagebox.showerror("Error", f"An error occurred while sending notifications: {e}")
             self.logger.error(f"Error sending notifications: {e}")
 
-    def _prepend_log_file(self):
-        new_logs = self.log_stream.getvalue()
-        with open(self.log_file, 'r') as f:
-            existing_logs = f.read()
-        with open(self.log_file, 'w') as f:
-            f.write(new_logs + existing_logs)
-        self.log_stream.seek(0)
-        self.log_stream.truncate(0)
+    def save_notification_history(self):
+        os.makedirs(self.data_folder, exist_ok=True)
+        unique_history = {v['id']: v for v in self.notification_history}.values()
+        with open(self.history_file, 'w') as f:
+            json.dump(list(unique_history), f, indent=4)
+        self.logger.info("Notification history saved to JSON file.")
+
+    def load_notification_history(self):
+        if os.path.exists(self.history_file):
+            try:
+                with open(self.history_file, 'r') as f:
+                    return json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError) as e:
+                self.logger.error(f"Error loading notification history from JSON file: {e}")
+        return []
 
     def open_log_file(self):
         log_file_path = os.path.abspath(self.log_file)
         webbrowser.open(f'file:///{log_file_path}')
+
+    def open_notification_history(self):
+        NotificationHistoryWindow(self.notification_frame, self.notification_history)
