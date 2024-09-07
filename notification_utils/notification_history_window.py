@@ -1,3 +1,5 @@
+# File: UI/notification_history_window.py
+
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime

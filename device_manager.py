@@ -1,13 +1,16 @@
+# File: device_manager.py
+
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
 import json
 import os
+import config
 
 class DeviceManager:
     def __init__(self, gui):
         self.gui = gui
-        self.data_folder = 'user_data'
+        self.data_folder = config.DATA_FOLDER
         self.product_ids_file = os.path.join(self.data_folder, "product_ids.json")
         self.devices_file = os.path.join(self.data_folder, "devices.json")
         self.product_ids = self.load_product_ids()

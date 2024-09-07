@@ -1,3 +1,4 @@
+# network_scanner.py
 import nmap
 from mac_vendor_lookup import MacLookup
 import socket

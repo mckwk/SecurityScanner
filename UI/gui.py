@@ -1,3 +1,5 @@
+# File: UI/gui.py
+
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import threading
@@ -7,6 +9,7 @@ from device_manager import DeviceManager
 from log_and_file_managers.results_exporter import ResultsExporter
 from UI.progress_window import ProgressWindow
 from notification_utils.notification_manager import NotificationManager
+import config
 
 class GUI:
     def __init__(self, root):
@@ -16,7 +19,7 @@ class GUI:
         self._setup_frames()
         self._setup_widgets()
         self.results_exporter = ResultsExporter(self.mode_combobox, self.device_tree, self.vulnerability_text)
-        self.network_scanner = NetworkScanner(nmap_path=[r"C:\Nmap\nmap.exe"])
+        self.network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH)
         self.vulnerability_checker = VulnerabilityChecker()
         self.notification_manager = NotificationManager(self.notification_frame)
         self.on_mode_change()

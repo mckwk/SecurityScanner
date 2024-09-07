@@ -1,3 +1,5 @@
+# File: main.py
+
 from ttkthemes import ThemedTk
 from UI.gui import GUI
 
