@@ -1,3 +1,4 @@
+# results_exporter.py
 import tkinter as tk
 from tkinter import filedialog
 
@@ -28,7 +29,7 @@ class ResultsExporter:
             file.write(f"Model: {device[3]}\n")
             file.write(f"Product ID: {device[4]}\n")
             file.write("Vulnerabilities:\n")
-            vulnerabilities = eval(device[5])  # Convert string representation of list to actual list
+            vulnerabilities = eval(device[5])
             for vuln in vulnerabilities:
                 cve = vuln.get('cve', {})
                 file.write(f"CVE ID: {cve.get('id', 'N/A')}\n")

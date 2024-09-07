@@ -1,25 +1,27 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
-import json
+# notification_manager.py
 import os
-from datetime import datetime
-from plyer import notification
-from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
-from UI.progress_window import ProgressWindow
+import tkinter as tk
+from tkinter import messagebox
 import threading
 import webbrowser
+from plyer import notification
+from datetime import datetime
 from log_and_file_managers.logger_manager import LoggerManager
+from log_and_file_managers.data_manager import DataManager
 from notification_utils.notification_history_window import NotificationHistoryWindow
 from notification_utils.notification_widgets import NotificationWidgets
-from log_and_file_managers.data_manager import DataManager
+from UI.progress_window import ProgressWindow
+from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
 
 class NotificationManager:
     def __init__(self, notification_frame):
+        from config import DATA_FOLDER, DATA_FILE, LOG_FILE, HISTORY_FILE
+
         self.notification_frame = notification_frame
-        self.data_folder = 'user_data'
-        self.data_file = os.path.join(self.data_folder, 'devices.json')
-        self.log_file = os.path.join(self.data_folder, 'notification_manager.log')
-        self.history_file = os.path.join(self.data_folder, 'notification_history.json')
+        self.data_folder = DATA_FOLDER
+        self.data_file = DATA_FILE
+        self.log_file = LOG_FILE
+        self.history_file = HISTORY_FILE
         self.logger_manager = LoggerManager(self.log_file)
         self.logger = self.logger_manager.get_logger()
         self.vulnerability_checker = VulnerabilityChecker()
@@ -72,8 +74,7 @@ class NotificationManager:
 
     def gather_vulnerabilities_summary(self):
         start_year_str = self.widgets.start_with_entry.get().strip()
-        print(start_year_str)
-        if start_year_str == '' or start_year_str == None:
+        if not start_year_str:
             start_year_str = '1999'
 
         start_year = int(start_year_str)
