@@ -74,9 +74,22 @@ python main.py
 
 
 - **Mode Selection**: Choose between "Network Scan", "Search by Input", and "Notification System".
+
 - **Network Scan**: Start scanning your network to discover devices and see related vulnerabilities.
+
+![Network scan](https://github.com/user-attachments/assets/f2e30730-9c17-4654-acb7-510c9101a970)
+
+(IPs and MAC blurred for repository purposes)
+
 - **Search by Input**: Manually search for vulnerabilities by entering device/system/program information.
+
+![input](https://github.com/user-attachments/assets/acc487da-6158-4455-8524-55cffbac7c3e)
+
 - **Notification System**: Manage devices for which you want to receive vulnerability notifications.
+
+![notifications](https://github.com/user-attachments/assets/2e5f491e-aafb-4d03-a7e7-48935f0cacd4)
+![history](https://github.com/user-attachments/assets/46aaa9a8-aa85-4536-aee5-9218da07ceda)
+
 
 
 ### Exporting Results
