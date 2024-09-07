@@ -28,7 +28,13 @@ class NotificationWidgets:
         self.notification_tree.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
 
         self.send_notifications_button = ttk.Button(self.notification_frame, text="Send Notifications", command=self.send_notifications_callback)
-        self.send_notifications_button.grid(row=2, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
+        self.send_notifications_button.grid(row=2, column=0, padx=10, pady=10, sticky="ew", columnspan=1)
+
+        self.start_with_label = ttk.Label(self.notification_frame, text="Start With (year):")
+        self.start_with_label.grid(row=2, column=1, padx=10, pady=10, sticky="e")
+
+        self.start_with_entry = ttk.Entry(self.notification_frame, width=10)
+        self.start_with_entry.grid(row=2, column=2, padx=10, pady=10, sticky="w")
 
         self.open_log_button = ttk.Button(self.notification_frame, text="Open Log File", command=self.open_log_callback)
         self.open_log_button.grid(row=3, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
