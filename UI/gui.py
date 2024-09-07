@@ -1,5 +1,3 @@
-# File: UI/gui.py
-
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import threading

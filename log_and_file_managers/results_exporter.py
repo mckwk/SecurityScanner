@@ -1,4 +1,3 @@
-# results_exporter.py
 import tkinter as tk
 from tkinter import filedialog
 

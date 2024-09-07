@@ -1,4 +1,3 @@
-# logger_manager.py
 import logging
 import os
 import io
@@ -16,8 +15,7 @@ class LoggerManager:
     def _setup_logging(self):
         os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
         if not os.path.exists(self.log_file):
-            with open(self.log_file, 'w') as f:
-                pass
+            open(self.log_file, 'w').close()
 
         self.logger = logging.getLogger('NotificationManager')
         self.logger.setLevel(logging.DEBUG)

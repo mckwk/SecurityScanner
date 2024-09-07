@@ -1,4 +1,3 @@
-# notification_manager.py
 import os
 import tkinter as tk
 from tkinter import messagebox
@@ -73,10 +72,7 @@ class NotificationManager:
             self.widgets.notification_tree.insert('', 'end', values=(device,))
 
     def gather_vulnerabilities_summary(self):
-        start_year_str = self.widgets.start_with_entry.get().strip()
-        if not start_year_str:
-            start_year_str = '1999'
-
+        start_year_str = self.widgets.start_with_entry.get().strip() or '1999'
         start_year = int(start_year_str)
 
         vulnerabilities = []

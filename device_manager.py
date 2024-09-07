@@ -1,5 +1,3 @@
-# File: device_manager.py
-
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
@@ -11,15 +9,19 @@ class DeviceManager:
     def __init__(self, gui):
         self.gui = gui
         self.data_folder = config.DATA_FOLDER
-        self.product_ids_file = os.path.join(self.data_folder, "product_ids.json")
-        self.devices_file = os.path.join(self.data_folder, "devices.json")
+        self.product_ids_file = config.PRODUCT_IDS_FILE
+        self.devices_file = config.DATA_FILE
         self.product_ids = self.load_product_ids()
         self.devices = self.load_devices()
 
     def load_product_ids(self):
         if os.path.exists(self.product_ids_file):
             with open(self.product_ids_file, "r") as file:
-                return json.load(file)
+                data = json.load(file)
+                if isinstance(data, dict):
+                    return data
+                else:
+                    return {}
         return {}
 
     def save_product_ids(self):
@@ -66,14 +68,12 @@ class DeviceManager:
 
     def process_device(self, device):
         vendor, model, mac = device['vendor'], device['model'], device['mac']
-        product_id = self.product_ids.get(mac, device['product_id'])
+        product_id = self.product_ids.get(mac, device.get('product_id', 'unknown'))
         if vendor == "Unknown":
             self.gui.device_tree.insert("", tk.END, values=(device['ip'], mac, vendor, model, product_id, "[]"))
         else:
             vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(model, vendor, product_id) if product_id.lower() != "unknown" else self.gui.vulnerability_checker.search_vulnerabilities(model, self.gui.vulnerability_checker.extract_keyword(vendor))
             self.gui.device_tree.insert("", tk.END, values=(device['ip'], mac, vendor, model, product_id, str(vulnerabilities)))
-
-        # Save relevant information to devices.json
         relevant_info = product_id if product_id.lower() != "unknown" else (model if model.lower() != "unknown" else vendor)
         if relevant_info.lower() != "unknown" and relevant_info not in self.devices:
             self.devices.append(relevant_info)
@@ -90,7 +90,7 @@ class DeviceManager:
     def on_double_click(self, event):
         item = self.gui.device_tree.selection()[0]
         column = self.gui.device_tree.identify_column(event.x)
-        if column == '#5':  # Product ID column
+        if column == '#5':
             x, y, width, height = self.gui.device_tree.bbox(item, column)
             entry = ttk.Entry(self.gui.device_tree)
             entry.place(x=x, y=y, width=width, height=height)

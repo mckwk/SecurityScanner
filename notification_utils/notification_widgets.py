@@ -1,5 +1,3 @@
-# File: UI/notification_widgets.py
-
 import tkinter as tk
 from tkinter import ttk
 
@@ -14,35 +12,38 @@ class NotificationWidgets:
         self.setup()
 
     def setup(self):
-        self.add_device_entry = ttk.Entry(self.notification_frame, width=50)
-        self.add_device_entry.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-        self.add_device_entry.bind("<Return>", lambda event: self.add_device_callback())
-
-        self.add_device_button = ttk.Button(self.notification_frame, text="Add Device", command=self.add_device_callback)
-        self.add_device_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
-
-        self.delete_device_button = ttk.Button(self.notification_frame, text="Delete Device", command=self.delete_device_callback)
-        self.delete_device_button.grid(row=0, column=2, padx=10, pady=10, sticky="w")
-
-        self.notification_tree = ttk.Treeview(self.notification_frame, columns=("Device Name",), show="headings")
-        self.notification_tree.heading("Device Name", text="Device Name")
-        self.notification_tree.column("Device Name", width=300, anchor="w")
-        self.notification_tree.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
-
-        self.send_notifications_button = ttk.Button(self.notification_frame, text="Send Notifications", command=self.send_notifications_callback)
-        self.send_notifications_button.grid(row=2, column=0, padx=10, pady=10, sticky="ew", columnspan=1)
-
-        self.start_with_label = ttk.Label(self.notification_frame, text="Start With (year):")
-        self.start_with_label.grid(row=2, column=1, padx=10, pady=10, sticky="e")
-
-        self.start_with_entry = ttk.Entry(self.notification_frame, width=10)
-        self.start_with_entry.grid(row=2, column=2, padx=10, pady=10, sticky="w")
-
-        self.open_log_button = ttk.Button(self.notification_frame, text="Open Log File", command=self.open_log_callback)
-        self.open_log_button.grid(row=3, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
-
-        self.open_history_button = ttk.Button(self.notification_frame, text="Open Notification History", command=self.open_history_callback)
-        self.open_history_button.grid(row=4, column=0, padx=10, pady=10, sticky="ew", columnspan=3)
-
+        self.add_device_entry = self._create_entry(0, 0, 50, self.add_device_callback)
+        self.add_device_button = self._create_button("Add Device", self.add_device_callback, 0, 1)
+        self.delete_device_button = self._create_button("Delete Device", self.delete_device_callback, 0, 2)
+        self.notification_tree = self._create_treeview(1, 0, 3)
+        self.send_notifications_button = self._create_button("Send Notifications", self.send_notifications_callback, 2, 0)
+        self.start_with_label = self._create_label("Start With (year):", 2, 1)
+        self.start_with_entry = self._create_entry(2, 2, 10)
+        self.open_log_button = self._create_button("Open Log File", self.open_log_callback, 3, 0, 3)
+        self.open_history_button = self._create_button("Open Notification History", self.open_history_callback, 4, 0, 3)
         self.notification_frame.grid_rowconfigure(1, weight=1)
         self.notification_frame.grid_columnconfigure(0, weight=1)
+
+    def _create_entry(self, row, column, width, callback=None):
+        entry = ttk.Entry(self.notification_frame, width=width)
+        entry.grid(row=row, column=column, padx=10, pady=10, sticky="ew")
+        if callback:
+            entry.bind("<Return>", lambda event: callback())
+        return entry
+
+    def _create_button(self, text, command, row, column, columnspan=1):
+        button = ttk.Button(self.notification_frame, text=text, command=command)
+        button.grid(row=row, column=column, padx=10, pady=10, sticky="ew", columnspan=columnspan)
+        return button
+
+    def _create_treeview(self, row, column, columnspan):
+        tree = ttk.Treeview(self.notification_frame, columns=("Device Name",), show="headings")
+        tree.heading("Device Name", text="Device Name")
+        tree.column("Device Name", width=300, anchor="w")
+        tree.grid(row=row, column=column, padx=10, pady=10, sticky="nsew", columnspan=columnspan)
+        return tree
+
+    def _create_label(self, text, row, column):
+        label = ttk.Label(self.notification_frame, text=text)
+        label.grid(row=row, column=column, padx=10, pady=10, sticky="e")
+        return label

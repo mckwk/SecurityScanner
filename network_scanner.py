@@ -16,24 +16,19 @@ class NetworkScanner:
             nm.scan(hosts=target_ip, arguments='-O -T4 -n')
             return [self._get_device_info(nm, host) for host in nm.all_hosts() if 'mac' in nm[host]['addresses']]
         except Exception as e:
+            print(f"Error scanning network: {e}")
             return []
 
     def _discover_network_address(self):
         try:
             local_ip = socket.gethostbyname(socket.gethostname())
             netmask = self._get_netmask(local_ip)
-
             if netmask:
-                network_parts = [
-                    str(int(ip_part) & int(mask_part))
-                    for ip_part, mask_part in zip(local_ip.split("."), netmask.split("."))
-                ]
-                network_address = ".".join(network_parts) + "/24"
-                return network_address
+                return self._calculate_network_address(local_ip, netmask)
             else:
                 raise RuntimeError("Unable to determine network address")
         except Exception as e:
-            raise RuntimeError("Unable to determine network address")
+            raise RuntimeError(f"Unable to determine network address: {e}")
 
     def _get_netmask(self, local_ip):
         try:
@@ -45,13 +40,21 @@ class NetworkScanner:
                             return addr.get("netmask")
             return None
         except Exception as e:
+            print(f"Error getting netmask: {e}")
             return None
+
+    def _calculate_network_address(self, ip, netmask):
+        network_parts = [
+            str(int(ip_part) & int(mask_part))
+            for ip_part, mask_part in zip(ip.split("."), netmask.split("."))
+        ]
+        return ".".join(network_parts) + "/24"
 
     def _get_device_info(self, nm, host):
         addresses = nm[host]['addresses']
         mac = addresses['mac']
         return {
-            'ip': addresses['ipv4'],
+            'ip': addresses.get('ipv4', 'Unknown'),
             'mac': mac,
             'vendor': self._lookup_vendor(mac),
             'model': self._get_os_info(nm, host, 'osfamily', 'name', 'output'),
