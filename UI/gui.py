@@ -2,11 +2,11 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
 import threading
 from network_scanner import NetworkScanner
-from vulnerability_checker import VulnerabilityChecker
+from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
 from device_manager import DeviceManager
-from results_exporter import ResultsExporter
-from progress_window import ProgressWindow
-from notification_manager import NotificationManager
+from log_and_file_managers.results_exporter import ResultsExporter
+from UI.progress_window import ProgressWindow
+from notification_utils.notification_manager import NotificationManager
 
 class GUI:
     def __init__(self, root):

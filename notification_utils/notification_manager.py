@@ -4,14 +4,14 @@ import json
 import os
 from datetime import datetime
 from plyer import notification
-from vulnerability_checker import VulnerabilityChecker
-from progress_window import ProgressWindow
+from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
+from UI.progress_window import ProgressWindow
 import threading
 import webbrowser
-from logger_manager import LoggerManager
-from notification_history_window import NotificationHistoryWindow
-from notification_widgets import NotificationWidgets
-from data_manager import DataManager
+from log_and_file_managers.logger_manager import LoggerManager
+from notification_utils.notification_history_window import NotificationHistoryWindow
+from notification_utils.notification_widgets import NotificationWidgets
+from log_and_file_managers.data_manager import DataManager
 
 class NotificationManager:
     def __init__(self, notification_frame):

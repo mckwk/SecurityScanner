@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
-from vulnerability_detail_window import VulnerabilityDetailWindow
+from vulnerability_utils.vulnerability_detail_window import VulnerabilityDetailWindow
 
 class NotificationHistoryWindow:
     def __init__(self, parent, notification_history):
