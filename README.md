@@ -31,7 +31,7 @@ The Network Scanner and Vulnerability Checker is a multi-mode tool designed to s
 
 ```bash
 git clone https://github.com/mckwk/SecurityScanner.git
-cd network-scanner-vulnerability-checker
+cd SecurityScanner
 ```
 
 
