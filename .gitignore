@@ -7,3 +7,9 @@ __pycache__/
 user_data/
 *.log
 .vscode/launch.json
+
+# Ignore virtual environment
+.venv/
+
+# Ignore vscode settings
+.vscode/
