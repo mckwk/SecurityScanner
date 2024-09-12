@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 
+
 class ResultsExporter:
     def __init__(self, mode_combobox, device_tree, vulnerability_text):
         self.mode_combobox = mode_combobox
@@ -8,7 +9,8 @@ class ResultsExporter:
         self.vulnerability_text = vulnerability_text
 
     def export_results(self):
-        file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+        file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[
+                                                 ("Text files", "*.txt"), ("All files", "*.*")])
         if not file_path:
             return
 
@@ -32,13 +34,16 @@ class ResultsExporter:
             for vuln in vulnerabilities:
                 cve = vuln.get('cve', {})
                 file.write(f"CVE ID: {cve.get('id', 'N/A')}\n")
-                description = cve.get('descriptions', [{}])[0].get('value', 'N/A')
+                description = cve.get('descriptions', [{}])[
+                    0].get('value', 'N/A')
                 file.write(f"Description: {description}\n")
-                severity = cve.get('metrics', {}).get('cvssMetricV2', [{}])[0].get('cvssData', {}).get('baseSeverity', 'N/A')
+                severity = cve.get('metrics', {}).get('cvssMetricV2', [{}])[
+                    0].get('cvssData', {}).get('baseSeverity', 'N/A')
                 file.write(f"Severity: {severity}\n")
                 published_date = cve.get('published', 'N/A')
                 file.write(f"Published Date: {published_date}\n")
-                resolved = 'Yes' if cve.get('vulnStatus', 'N/A') == 'Analyzed' else 'No'
+                resolved = 'Yes' if cve.get(
+                    'vulnStatus', 'N/A') == 'Analyzed' else 'No'
                 file.write(f"Resolved: {resolved}\n")
                 file.write("-" * 80 + "\n")
             file.write("=" * 80 + "\n\n")

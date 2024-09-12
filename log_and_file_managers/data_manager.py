@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime
 
+
 class DataManager:
     def __init__(self, data_folder, data_file, history_file, logger):
         self.data_folder = data_folder
@@ -41,5 +42,6 @@ class DataManager:
                 with open(self.history_file, 'r') as f:
                     return json.load(f)
             except (FileNotFoundError, json.JSONDecodeError) as e:
-                self.logger.error(f"Error loading notification history from JSON file: {e}")
+                self.logger.error(
+                    f"Error loading notification history from JSON file: {e}")
         return []

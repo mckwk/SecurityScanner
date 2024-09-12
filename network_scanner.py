@@ -1,8 +1,9 @@
-# network_scanner.py
+import socket
+
+import netifaces
 import nmap
 from mac_vendor_lookup import MacLookup
-import socket
-import netifaces
+
 
 class NetworkScanner:
     def __init__(self, nmap_path):

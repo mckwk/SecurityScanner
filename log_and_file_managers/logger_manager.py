@@ -1,10 +1,12 @@
+import io
 import logging
 import os
-import io
+
 
 class CustomFilter(logging.Filter):
     def filter(self, record):
         return "Starting new HTTPS connection" not in record.getMessage()
+
 
 class LoggerManager:
     def __init__(self, log_file):
@@ -24,7 +26,8 @@ class LoggerManager:
         stream_handler.setLevel(logging.DEBUG)
         stream_handler.addFilter(CustomFilter())
 
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(message)s')
         stream_handler.setFormatter(formatter)
 
         self.logger.addHandler(stream_handler)

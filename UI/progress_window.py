@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
+
 class ProgressWindow:
     def __init__(self, root, title):
         self.progress_window = tk.Toplevel(root)
@@ -19,7 +20,8 @@ class ProgressWindow:
     def _setup_widgets(self, title):
         label = ttk.Label(self.progress_window, text=f"{title}...")
         label.pack(pady=10)
-        self.progress_bar = ttk.Progressbar(self.progress_window, mode='indeterminate')
+        self.progress_bar = ttk.Progressbar(
+            self.progress_window, mode='indeterminate')
         self.progress_bar.pack(pady=10)
         self.progress_bar.start(interval=10)
 

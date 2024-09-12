@@ -1,13 +1,15 @@
-import tkinter as tk
-from tkinter import ttk, scrolledtext, filedialog
 import threading
-from network_scanner import NetworkScanner
-from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
+import tkinter as tk
+from tkinter import filedialog, scrolledtext, ttk
+
+import config
 from device_manager import DeviceManager
 from log_and_file_managers.results_exporter import ResultsExporter
-from UI.progress_window import ProgressWindow
+from network_scanner import NetworkScanner
 from notification_utils.notification_manager import NotificationManager
-import config
+from UI.progress_window import ProgressWindow
+from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
+
 
 class GUI:
     def __init__(self, root):
@@ -16,10 +18,12 @@ class GUI:
         self.device_manager = DeviceManager(self)
         self._setup_frames()
         self._setup_widgets()
-        self.results_exporter = ResultsExporter(self.mode_combobox, self.device_tree, self.vulnerability_text)
+        self.results_exporter = ResultsExporter(
+            self.mode_combobox, self.device_tree, self.vulnerability_text)
         self.network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH)
         self.vulnerability_checker = VulnerabilityChecker()
-        self.notification_manager = NotificationManager(self.notification_frame)
+        self.notification_manager = NotificationManager(
+            self.notification_frame)
         self.on_mode_change()
 
     def _setup_root(self):
@@ -43,13 +47,18 @@ class GUI:
         return frame
 
     def _setup_widgets(self):
-        self.mode_combobox = self._create_combobox(["Network Scan", "Search by Input", "Notification System"], 0)
-        self.device_tree = self._create_treeview(self.device_frame, ["IP", "MAC", "Vendor", "Model", "Product ID", "Vulnerabilities"])
-        self.vulnerability_text = self._create_scrolledtext(self.vulnerability_frame)
+        self.mode_combobox = self._create_combobox(
+            ["Network Scan", "Search by Input", "Notification System"], 0)
+        self.device_tree = self._create_treeview(self.device_frame, [
+                                                 "IP", "MAC", "Vendor", "Model", "Product ID", "Vulnerabilities"])
+        self.vulnerability_text = self._create_scrolledtext(
+            self.vulnerability_frame)
         self.scan_button = self._create_button("Start", self.start_action, 3)
-        self.export_button = self._create_button("Export Results", self.export_results, 4)
+        self.export_button = self._create_button(
+            "Export Results", self.export_results, 4)
         self.search_entry = self._create_entry(self.search_frame, 0)
-        self.search_button = self._create_button("Search", self.search_by_input, 0, 1, self.search_frame)
+        self.search_button = self._create_button(
+            "Search", self.search_by_input, 0, 1, self.search_frame)
 
     def _create_combobox(self, values, row):
         combobox = ttk.Combobox(self.root, values=values, state="readonly")
@@ -62,7 +71,8 @@ class GUI:
         tree = ttk.Treeview(parent, columns=columns, show="headings")
         for col in columns:
             tree.heading(col, text=col)
-            tree.column(col, width=150 if col != "Vulnerabilities" else 0, stretch=tk.NO)
+            tree.column(col, width=150 if col !=
+                        "Vulnerabilities" else 0, stretch=tk.NO)
         tree.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         tree.bind("<<TreeviewSelect>>", self.device_manager.on_device_select)
         tree.bind("<Double-1>", self.device_manager.on_double_click)
@@ -104,13 +114,16 @@ class GUI:
             frame.grid()
 
     def start_action(self):
-        {"Network Scan": self.start_scan, "Search by Input": self.search_by_input}.get(self.mode_combobox.get(), lambda: None)()
+        {"Network Scan": self.start_scan, "Search by Input": self.search_by_input}.get(
+            self.mode_combobox.get(), lambda: None)()
 
     def start_scan(self):
-        self._run_in_thread(self.network_scanner.scan_network, self.device_manager.process_device, self.scan_button)
+        self._run_in_thread(self.network_scanner.scan_network,
+                            self.device_manager.process_device, self.scan_button)
 
     def search_by_input(self):
-        self._run_in_thread(lambda: self.device_manager.search_vulnerabilities(self.search_entry.get()), None, self.search_button)
+        self._run_in_thread(lambda: self.device_manager.search_vulnerabilities(
+            self.search_entry.get()), None, self.search_button)
 
     def _run_in_thread(self, target, process, button):
         progress_window = ProgressWindow(self.root, "In Progress")
