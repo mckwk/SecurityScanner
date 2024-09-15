@@ -44,6 +44,7 @@ class NotificationManager:
 
         # Initialize scheduler
         self.scheduler = sched.scheduler()
+        self.cancel_event = threading.Event()
 
     def add_device_to_notification(self):
         device_name = self.widgets.add_device_entry.get().strip()
@@ -89,10 +90,14 @@ class NotificationManager:
 
         vulnerabilities = []
         for item in self.widgets.notification_tree.get_children():
+            if self.cancel_event.is_set():
+                break
             device_name = self.widgets.notification_tree.item(item, 'values')[0]
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(
                 model=device_name, vendor="unknown", max_results=10)
             for vulnerability in found_vulnerabilities:
+                if self.cancel_event.is_set():
+                    break
                 cve = vulnerability.get('cve', {})
                 published_date_str = cve.get('published', 'Unknown')
                 try:
@@ -127,8 +132,9 @@ class NotificationManager:
         return vulnerabilities
 
     def send_notifications(self):
+        self.cancel_event.clear()
         progress_window = ProgressWindow(
-            self.notification_frame, "Searching for Vulnerabilities")
+            self.notification_frame, "Searching for Vulnerabilities", self.cancel_scan)
         threading.Thread(target=self._send_notifications,
                          args=(progress_window,)).start()
 
@@ -139,6 +145,9 @@ class NotificationManager:
             self.logger.info(f"Scan started at {start_time}")
             vulnerabilities = self.gather_vulnerabilities_summary()
             progress_window.destroy()
+            if self.cancel_event.is_set():
+                self.logger.info("Scan was canceled.")
+                return
             new_vulnerabilities = []
             if vulnerabilities:
                 for vulnerability in vulnerabilities:
@@ -190,6 +199,9 @@ class NotificationManager:
         # Reschedule the next notification
         interval = int(self.widgets.interval_combobox.get()) * 60
         self.schedule_notifications(interval=interval)
+
+    def cancel_scan(self):
+        self.cancel_event.set()
 
     def schedule_notifications(self, interval=None):
         if interval is None:

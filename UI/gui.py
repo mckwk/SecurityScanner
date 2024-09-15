@@ -24,6 +24,7 @@ class GUI:
         self.vulnerability_checker = VulnerabilityChecker()
         self.notification_manager = NotificationManager(
             self.notification_frame)
+        self.cancel_event = threading.Event()
         self.on_mode_change()
 
     def _setup_root(self):
@@ -126,7 +127,8 @@ class GUI:
             self.search_entry.get()), None, self.search_button)
 
     def _run_in_thread(self, target, process, button):
-        progress_window = ProgressWindow(self.root, "In Progress")
+        self.cancel_event.clear()
+        progress_window = ProgressWindow(self.root, "In Progress", self.cancel_scan)
         button.config(state=tk.DISABLED)
         self.device_tree.delete(*self.device_tree.get_children())
         self.vulnerability_text.delete('1.0', tk.END)
@@ -135,11 +137,16 @@ class GUI:
             result = target()
             if process:
                 for item in result:
+                    if self.cancel_event.is_set():
+                        break
                     process(item)
             progress_window.destroy()
             button.config(state=tk.NORMAL)
 
         threading.Thread(target=task).start()
+
+    def cancel_scan(self):
+        self.cancel_event.set()
 
     def export_results(self):
         self.results_exporter.export_results()
