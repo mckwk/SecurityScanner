@@ -2,15 +2,15 @@ import os
 import threading
 import tkinter as tk
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timedelta
 from tkinter import messagebox
+import sched
 
 from plyer import notification
 
 from log_and_file_managers.data_manager import DataManager
 from log_and_file_managers.logger_manager import LoggerManager
-from notification_utils.notification_history_window import \
-    NotificationHistoryWindow
+from notification_utils.notification_history_window import NotificationHistoryWindow
 from notification_utils.notification_widgets import NotificationWidgets
 from UI.progress_window import ProgressWindow
 from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
@@ -37,9 +37,13 @@ class NotificationManager:
             self.delete_device_from_notification,
             self.send_notifications,
             self.open_log_file,
-            self.open_notification_history
+            self.open_notification_history,
+            self.schedule_notifications
         )
         self.load_devices_from_json()
+
+        # Initialize scheduler
+        self.scheduler = sched.scheduler()
 
     def add_device_to_notification(self):
         device_name = self.widgets.add_device_entry.get().strip()
@@ -85,8 +89,7 @@ class NotificationManager:
 
         vulnerabilities = []
         for item in self.widgets.notification_tree.get_children():
-            device_name = self.widgets.notification_tree.item(item, 'values')[
-                0]
+            device_name = self.widgets.notification_tree.item(item, 'values')[0]
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(
                 model=device_name, vendor="unknown", max_results=10)
             for vulnerability in found_vulnerabilities:
@@ -183,6 +186,16 @@ class NotificationManager:
             messagebox.showerror(
                 "Error", f"An error occurred while sending notifications: {e}")
             self.logger.error(f"Error sending notifications: {e}")
+
+        # Reschedule the next notification
+        interval = int(self.widgets.interval_combobox.get()) * 60
+        self.schedule_notifications(interval=interval)
+
+    def schedule_notifications(self, interval=None):
+        if interval is None:
+            interval = int(self.widgets.interval_combobox.get()) * 60
+        self.scheduler.enter(interval, 1, self.send_notifications)
+        threading.Thread(target=self.scheduler.run).start()
 
     def save_notification_history(self):
         self.data_manager.save_notification_history(self.notification_history)

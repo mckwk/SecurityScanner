@@ -3,13 +3,14 @@ from tkinter import ttk
 
 
 class NotificationWidgets:
-    def __init__(self, notification_frame, add_device_callback, delete_device_callback, send_notifications_callback, open_log_callback, open_history_callback):
+    def __init__(self, notification_frame, add_device_callback, delete_device_callback, send_notifications_callback, open_log_callback, open_history_callback, schedule_callback):
         self.notification_frame = notification_frame
         self.add_device_callback = add_device_callback
         self.delete_device_callback = delete_device_callback
         self.send_notifications_callback = send_notifications_callback
         self.open_log_callback = open_log_callback
         self.open_history_callback = open_history_callback
+        self.schedule_callback = schedule_callback
         self.setup()
 
     def setup(self):
@@ -28,6 +29,13 @@ class NotificationWidgets:
             "Open Log File", self.open_log_callback, 3, 0, 3)
         self.open_history_button = self._create_button(
             "Open Notification History", self.open_history_callback, 4, 0, 3)
+        
+        # Add Combobox for scheduling interval
+        self.interval_label = self._create_label("Scan Interval (minutes):", 5, 0)
+        self.interval_combobox = self._create_combobox([1, 5, 10, 30, 60, 120], 5, 1)
+        self.schedule_button = self._create_button(
+            "Schedule Scans", self.schedule_callback, 5, 2)
+        
         self.notification_frame.grid_rowconfigure(1, weight=1)
         self.notification_frame.grid_columnconfigure(0, weight=1)
 
@@ -58,3 +66,9 @@ class NotificationWidgets:
         label = ttk.Label(self.notification_frame, text=text)
         label.grid(row=row, column=column, padx=10, pady=10, sticky="e")
         return label
+
+    def _create_combobox(self, values, row, column):
+        combobox = ttk.Combobox(self.notification_frame, values=values, state="readonly")
+        combobox.current(0)
+        combobox.grid(row=row, column=column, padx=10, pady=10, sticky="ew")
+        return combobox
