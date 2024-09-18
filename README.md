@@ -24,6 +24,7 @@ The Network Scanner and Vulnerability Checker is a multi-mode tool designed to s
 
 - Python 3.8 or higher
 - `pip` (Python package installer)
+- [Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 
 
 ### Clone the Repository
