@@ -88,7 +88,7 @@ python main.py
 
 - **Notification System**: Manage devices for which you want to receive vulnerability notifications.
 
-![notifications](https://github.com/user-attachments/assets/2e5f491e-aafb-4d03-a7e7-48935f0cacd4)
+![notification_list](https://github.com/user-attachments/assets/778c941f-2e77-4186-9ca8-45781f5127f7)
 ![history](https://github.com/user-attachments/assets/46aaa9a8-aa85-4536-aee5-9218da07ceda)
 
 
