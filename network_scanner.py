@@ -77,6 +77,21 @@ class NetworkScanner:
         }
         logging.info("Device info for host %s: %s", host, device_info)
         return device_info
+    
+    def _scan_single_ip(self, ip):
+        try:
+            nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
+            nm.scan(hosts=ip, arguments='-O -T4 -n')
+            if ip in nm.all_hosts() and 'mac' in nm[ip]['addresses']:
+                device_info = self._get_device_info(nm, ip)
+                logging.info("Scan completed for IP %s. Device info: %s", ip, device_info)
+                return device_info
+            else:
+                logging.warning("No device found at IP %s", ip)
+                return None
+        except Exception as e:
+            logging.error("Error scanning IP %s: %s", ip, e)
+            return None
 
     def _lookup_vendor(self, mac_address):
         try:
