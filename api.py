@@ -35,5 +35,13 @@ def scan_vulnerabilities():
     vulnerabilities = vulnerability_checker.search_vulnerabilities(device_info['OS'], device_info['vendor'], device_info['device_name'])
     return jsonify(vulnerabilities)
 
+@app.route('/scan_and_search_vulnerabilities', methods=['GET'])
+def scan_and_search_vulnerabilities():
+    devices = network_scanner.scan_network()
+    for device in devices:
+        vulnerabilities = vulnerability_checker.search_vulnerabilities(device['OS'], device['vendor'], device['device_name'])
+        device['vulnerabilities'] = vulnerabilities
+    return jsonify(devices)
+
 if __name__ == '__main__':
     app.run(debug=True)
