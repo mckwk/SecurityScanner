@@ -1,16 +1,17 @@
 import os
+import sched
 import threading
 import tkinter as tk
 import webbrowser
 from datetime import datetime, timedelta
 from tkinter import messagebox
-import sched
 
 from plyer import notification
 
 from log_and_file_managers.data_manager import DataManager
 from log_and_file_managers.logger_manager import LoggerManager
-from notification_utils.notification_history_window import NotificationHistoryWindow
+from notification_utils.notification_history_window import \
+    NotificationHistoryWindow
 from notification_utils.notification_widgets import NotificationWidgets
 from UI.progress_window import ProgressWindow
 from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
@@ -52,7 +53,8 @@ class NotificationManager:
             messagebox.showerror("Error", "Device name cannot be empty")
             return
 
-        if any(self.widgets.notification_tree.item(item, 'values')[0] == device_name for item in self.widgets.notification_tree.get_children()):
+        if any(self.widgets.notification_tree.item(item, 'values')[
+               0] == device_name for item in self.widgets.notification_tree.get_children()):
             messagebox.showerror("Error", "Device name already exists")
             return
 
@@ -92,7 +94,8 @@ class NotificationManager:
         for item in self.widgets.notification_tree.get_children():
             if self.cancel_event.is_set():
                 break
-            device_name = self.widgets.notification_tree.item(item, 'values')[0]
+            device_name = self.widgets.notification_tree.item(item, 'values')[
+                0]
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(
                 OS=device_name, vendor="unknown", max_results=10)
             for vulnerability in found_vulnerabilities:
@@ -134,7 +137,9 @@ class NotificationManager:
     def send_notifications(self):
         self.cancel_event.clear()
         progress_window = ProgressWindow(
-            self.notification_frame, "Searching for Vulnerabilities", self.cancel_scan)
+            self.notification_frame,
+            "Searching for Vulnerabilities",
+            self.cancel_scan)
         threading.Thread(target=self._send_notifications,
                          args=(progress_window,)).start()
 
@@ -158,7 +163,8 @@ class NotificationManager:
                         len(cve_id) - len(device_name) - 100
                     truncated_description = (description[:max_description_length] + '...') if len(
                         description) > max_description_length else description
-                    if not any(vuln['id'] == cve_id for vuln in self.notification_history):
+                    if not any(
+                            vuln['id'] == cve_id for vuln in self.notification_history):
                         notification.notify(
                             title=f"Vulnerability found in {device_name}",
                             message=f"{cve_id}: {truncated_description}",
@@ -182,8 +188,7 @@ class NotificationManager:
                 notification.notify(
                     title="No Vulnerabilities Found",
                     message="No new vulnerabilities were found for the devices",
-                    timeout=10
-                )
+                    timeout=10)
                 self.logger.info("No vulnerabilities found for the devices.")
             end_time = datetime.now()
             self.logger.info(f"Scan ended at {end_time}")

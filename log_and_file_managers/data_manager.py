@@ -24,7 +24,8 @@ class DataManager:
                 self.logger.info("Devices loaded from JSON file.")
                 return notification_list
             except (FileNotFoundError, json.JSONDecodeError) as e:
-                self.logger.error(f"Error loading notification_list from JSON file: {e}")
+                self.logger.error(
+                    f"Error loading notification_list from JSON file: {e}")
         return []
 
     def save_notification_history(self, notification_history):

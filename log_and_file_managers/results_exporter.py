@@ -9,8 +9,9 @@ class ResultsExporter:
         self.vulnerability_text = vulnerability_text
 
     def export_results(self):
-        file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[
-                                                 ("Text files", "*.txt"), ("All files", "*.*")])
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt", filetypes=[
+                ("Text files", "*.txt"), ("All files", "*.*")])
         if not file_path:
             return
 

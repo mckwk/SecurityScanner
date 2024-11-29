@@ -1,5 +1,6 @@
-import socket
 import logging
+import socket
+
 import netifaces
 import nmap
 from mac_vendor_lookup import MacLookup
@@ -23,7 +24,10 @@ class NetworkScanner:
             logger.info("Target IP for scanning: %s", target_ip)
             nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
             nm.scan(hosts=target_ip, arguments='-O -T4 -n')
-            devices = [self._get_device_info(nm, host) for host in nm.all_hosts() if 'mac' in nm[host]['addresses']]
+            devices = [
+                self._get_device_info(
+                    nm,
+                    host) for host in nm.all_hosts() if 'mac' in nm[host]['addresses']]
             logger.info("Scan completed. Devices found: %d", len(devices))
             return devices
         except Exception as e:
@@ -36,7 +40,8 @@ class NetworkScanner:
             logger.info("Local IP address: %s", local_ip)
             netmask = self._get_netmask(local_ip)
             if netmask:
-                network_address = self._calculate_network_address(local_ip, netmask)
+                network_address = self._calculate_network_address(
+                    local_ip, netmask)
                 logger.info("Network address: %s", network_address)
                 return network_address
             else:
@@ -53,7 +58,8 @@ class NetworkScanner:
                     for addr in addrs[netifaces.AF_INET]:
                         if addr["addr"] == local_ip:
                             netmask = addr.get("netmask")
-                            logger.info("Netmask for interface %s: %s", iface, netmask)
+                            logger.info(
+                                "Netmask for interface %s: %s", iface, netmask)
                             return netmask
             return None
         except Exception as e:
@@ -73,22 +79,35 @@ class NetworkScanner:
         addresses = nm[host]['addresses']
         mac = addresses['mac']
         device_info = {
-            'ip': addresses.get('ipv4', 'Unknown'),
+            'ip': addresses.get(
+                'ipv4',
+                'Unknown'),
             'mac': mac,
             'vendor': self._lookup_vendor(mac),
-            'OS': self._get_os_info(nm, host, 'osfamily', 'name', 'output'),
-            'device_name': self._get_device_name(addresses.get('ipv4', 'Unknown')),
+            'OS': self._get_os_info(
+                nm,
+                host,
+                'osfamily',
+                'name',
+                'output'),
+            'device_name': self._get_device_name(
+                addresses.get(
+                    'ipv4',
+                    'Unknown')),
         }
         logger.info("Device info for host %s: %s", host, device_info)
         return device_info
-    
+
     def _scan_single_ip(self, ip):
         try:
             nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
             nm.scan(hosts=ip, arguments='-O -T4 -n')
             if ip in nm.all_hosts() and 'mac' in nm[ip]['addresses']:
                 device_info = self._get_device_info(nm, ip)
-                logger.info("Scan completed for IP %s. Device info: %s", ip, device_info)
+                logger.info(
+                    "Scan completed for IP %s. Device info: %s",
+                    ip,
+                    device_info)
                 return device_info
             else:
                 logger.warning("No device found at IP %s", ip)
@@ -114,13 +133,14 @@ class NetworkScanner:
                         for subkey in keys:
                             if subkey in item:
                                 os_info = item[subkey]
-                                logger.info("OS info for host %s: %s", host, os_info)
+                                logger.info(
+                                    "OS info for host %s: %s", host, os_info)
                                 return os_info
             return "Unknown"
         except Exception:
             logger.warning("OS info lookup failed for host %s", host)
             return "Unknown"
-        
+
     def _get_device_name(self, ip):
         try:
             hostname, _, _ = socket.gethostbyaddr(ip)

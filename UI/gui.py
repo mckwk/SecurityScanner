@@ -50,8 +50,9 @@ class GUI:
     def _setup_widgets(self):
         self.mode_combobox = self._create_combobox(
             ["Network Scan", "Search by Input", "Notification System"], 0)
-        self.device_tree = self._create_treeview(self.device_frame, [
-                                                 "IP", "MAC", "Vendor", "OS", "Device Name", "Vulnerabilities"])
+        self.device_tree = self._create_treeview(
+            self.device_frame, [
+                "IP", "MAC", "Vendor", "OS", "Device Name", "Vulnerabilities"])
         self.vulnerability_text = self._create_scrolledtext(
             self.vulnerability_frame)
         self.scan_button = self._create_button("Start", self.start_action, 3)
@@ -105,11 +106,25 @@ class GUI:
 
     def _toggle_frames(self, mode):
         frames = {
-            "Network Scan": [self.device_frame, self.vulnerability_frame, self.scan_button, self.export_button],
-            "Search by Input": [self.vulnerability_frame, self.search_frame, self.scan_button, self.export_button],
-            "Notification System": [self.notification_frame]
-        }
-        for frame in [self.device_frame, self.vulnerability_frame, self.search_frame, self.notification_frame, self.scan_button, self.export_button]:
+            "Network Scan": [
+                self.device_frame,
+                self.vulnerability_frame,
+                self.scan_button,
+                self.export_button],
+            "Search by Input": [
+                self.vulnerability_frame,
+                self.search_frame,
+                self.scan_button,
+                self.export_button],
+            "Notification System": [
+                self.notification_frame]}
+        for frame in [
+                self.device_frame,
+                self.vulnerability_frame,
+                self.search_frame,
+                self.notification_frame,
+                self.scan_button,
+                self.export_button]:
             frame.grid_remove()
         for frame in frames.get(mode, []):
             frame.grid()
@@ -119,8 +134,10 @@ class GUI:
             self.mode_combobox.get(), lambda: None)()
 
     def start_scan(self):
-        self._run_in_thread(self.network_scanner.scan_network,
-                            self.device_manager.process_device, self.scan_button)
+        self._run_in_thread(
+            self.network_scanner.scan_network,
+            self.device_manager.process_device,
+            self.scan_button)
 
     def search_by_input(self):
         self._run_in_thread(lambda: self.device_manager.search_vulnerabilities(
@@ -128,7 +145,8 @@ class GUI:
 
     def _run_in_thread(self, target, process, button):
         self.cancel_event.clear()
-        progress_window = ProgressWindow(self.root, "In Progress", self.cancel_scan)
+        progress_window = ProgressWindow(
+            self.root, "In Progress", self.cancel_scan)
         button.config(state=tk.DISABLED)
         self.device_tree.delete(*self.device_tree.get_children())
         self.vulnerability_text.delete('1.0', tk.END)

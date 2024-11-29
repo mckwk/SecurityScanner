@@ -14,8 +14,14 @@ class NotificationHistoryWindow:
         self._setup_widgets()
 
     def _setup_widgets(self):
-        self.tree = ttk.Treeview(self.window, columns=(
-            "Device Name", "CVE ID", "Description", "Timestamp"), show="headings")
+        self.tree = ttk.Treeview(
+            self.window,
+            columns=(
+                "Device Name",
+                "CVE ID",
+                "Description",
+                "Timestamp"),
+            show="headings")
         self._configure_treeview()
         self._populate_treeview()
         self.tree.bind("<Double-1>", self.on_item_double_click)
@@ -33,13 +39,20 @@ class NotificationHistoryWindow:
             if isinstance(record, dict):
                 timestamp = self._format_timestamp(
                     record.get('timestamp', 'N/A'))
-                self.tree.insert('', 'end', values=(
-                    record['device_name'], record['id'], record['description'], timestamp))
+                self.tree.insert(
+                    '',
+                    'end',
+                    values=(
+                        record['device_name'],
+                        record['id'],
+                        record['description'],
+                        timestamp))
 
     def _format_timestamp(self, timestamp):
         if timestamp != 'N/A':
             try:
-                return datetime.fromisoformat(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                return datetime.fromisoformat(
+                    timestamp).strftime("%Y-%m-%d %H:%M:%S")
             except ValueError:
                 return 'Invalid format'
         return timestamp
