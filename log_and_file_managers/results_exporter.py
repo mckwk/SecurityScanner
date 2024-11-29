@@ -27,8 +27,8 @@ class ResultsExporter:
             file.write(f"IP Address: {device[0]}\n")
             file.write(f"MAC Address: {device[1]}\n")
             file.write(f"Vendor: {device[2]}\n")
-            file.write(f"Model: {device[3]}\n")
-            file.write(f"Product ID: {device[4]}\n")
+            file.write(f"OS: {device[3]}\n")
+            file.write(f"Device Name: {device[4]}\n")
             file.write("Vulnerabilities:\n")
             vulnerabilities = eval(device[5])
             for vuln in vulnerabilities:

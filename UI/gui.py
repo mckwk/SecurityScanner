@@ -51,7 +51,7 @@ class GUI:
         self.mode_combobox = self._create_combobox(
             ["Network Scan", "Search by Input", "Notification System"], 0)
         self.device_tree = self._create_treeview(self.device_frame, [
-                                                 "IP", "MAC", "Vendor", "Model", "Product ID", "Vulnerabilities"])
+                                                 "IP", "MAC", "Vendor", "OS", "Device Name", "Vulnerabilities"])
         self.vulnerability_text = self._create_scrolledtext(
             self.vulnerability_frame)
         self.scan_button = self._create_button("Start", self.start_action, 3)

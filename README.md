@@ -10,7 +10,7 @@ The Network Scanner and Vulnerability Checker is a multi-mode tool designed to s
 ## Features
 
 
-- **Network Scanning**: Scan your network to discover connected devices and gather information such as IP address, MAC address, vendor, and model.
+- **Network Scanning**: Scan your network to discover connected devices and gather information such as IP address, MAC address, vendor, and OS.
 - **Vulnerability Checking**: Search for known vulnerabilities associated with the discovered devices using the National Vulnerability Database (NVD).
 - **Notification System**: Get notified about new vulnerabilities found in your devices and maintain a history of notifications.
 - **Results Exporting**: Export scan results and vulnerability details to a text file for further analysis.
@@ -55,7 +55,7 @@ DATA_FOLDER = 'user_data'
 DATA_FILE = os.path.join(DATA_FOLDER, 'devices.json')
 LOG_FILE = os.path.join(DATA_FOLDER, 'notification_manager.log')
 HISTORY_FILE = os.path.join(DATA_FOLDER, 'notification_history.json')
-PRODUCT_IDS_FILE = os.path.join(DATA_FOLDER, "product_ids.json")
+DEVICE_NAMES_FILE = os.path.join(DATA_FOLDER, "device_names.json")
 NMAP_PATH = [r"C:\Nmap\nmap.exe"] # Your path goes here
 ```
 

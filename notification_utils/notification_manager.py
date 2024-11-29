@@ -94,7 +94,7 @@ class NotificationManager:
                 break
             device_name = self.widgets.notification_tree.item(item, 'values')[0]
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(
-                model=device_name, vendor="unknown", max_results=10)
+                OS=device_name, vendor="unknown", max_results=10)
             for vulnerability in found_vulnerabilities:
                 if self.cancel_event.is_set():
                     break

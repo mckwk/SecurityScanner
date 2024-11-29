@@ -3,50 +3,60 @@ import os
 import tkinter as tk
 from datetime import datetime
 from tkinter import ttk
+import logging
 
 import config
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class DeviceManager:
     def __init__(self, gui):
         self.gui = gui
         self.data_folder = config.DATA_FOLDER
-        self.product_ids_file = config.PRODUCT_IDS_FILE
+        self.device_names_file = config.DEVICE_NAMES_FILE
         self.devices_file = config.DATA_FILE
-        self.product_ids = self.load_product_ids()
+        self.device_names = self.load_device_names()
         self.devices = self.load_devices()
 
-    def load_product_ids(self):
-        if os.path.exists(self.product_ids_file):
-            with open(self.product_ids_file, "r") as file:
+    def load_device_names(self):
+        if os.path.exists(self.device_names_file):
+            with open(self.device_names_file, "r") as file:
                 data = json.load(file)
                 if isinstance(data, dict):
+                    logging.info("Device names loaded successfully")
                     return data
                 else:
+                    logging.warning("Device names file is not a dictionary")
                     return {}
+        logging.warning("Device names file does not exist")
         return {}
 
-    def save_product_ids(self):
+    def save_device_names(self):
         os.makedirs(self.data_folder, exist_ok=True)
-        with open(self.product_ids_file, "w") as file:
-            json.dump(self.product_ids, file)
+        with open(self.device_names_file, "w") as file:
+            json.dump(self.device_names, file)
+        logging.info("Device names saved successfully")
 
     def load_devices(self):
         if os.path.exists(self.devices_file):
             with open(self.devices_file, "r") as file:
+                logging.info("Devices loaded successfully")
                 return json.load(file)
+        logging.warning("Devices file does not exist")
         return []
 
     def save_devices(self):
         os.makedirs(self.data_folder, exist_ok=True)
         with open(self.devices_file, "w") as file:
             json.dump(self.devices, file, indent=4)
+        logging.info("Devices saved successfully")
 
     def on_device_select(self, event):
         selected_item = self.gui.device_tree.selection()
         if selected_item:
             device = self.gui.device_tree.item(selected_item[0], "values")
-            ip, mac, vendor, model, product_id, vulnerabilities = device
+            ip, mac, vendor, OS, device_name, vulnerabilities = device
             self.gui.vulnerability_text.delete('1.0', tk.END)
             self.gui.vulnerability_text.insert(
                 tk.END, f"Vulnerabilities for device {ip} (Vendor: {vendor}):\n{'=' * 80}\n")
@@ -76,25 +86,27 @@ class DeviceManager:
                 tk.END, f"CVE ID: {cve_id}\nDescription: {description}\nSeverity: {severity}\nPublished Date: {published_date}\nResolved: {resolved}\n{'-' * 80}\n")
 
     def process_device(self, device):
-        vendor, model, mac = device['vendor'], device['model'], device['mac']
-        product_id = self.product_ids.get(
-            mac, device.get('product_id', 'unknown'))
+        vendor, OS, mac = device['vendor'], device['OS'], device['mac']
+        device_name = self.device_names.get(
+            mac, device.get('device_name', 'unknown'))
         if vendor == "Unknown":
             self.gui.device_tree.insert("", tk.END, values=(
-                device['ip'], mac, vendor, model, product_id, "[]"))
+                device['ip'], mac, vendor, OS, device_name, "[]"))
         else:
-            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(model, vendor, product_id) if product_id.lower(
-            ) != "unknown" else self.gui.vulnerability_checker.search_vulnerabilities(model, self.gui.vulnerability_checker.extract_keyword(vendor))
+            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(OS, vendor, device_name) if device_name.lower(
+            ) != "unknown" else self.gui.vulnerability_checker.search_vulnerabilities(OS, self.gui.vulnerability_checker.extract_keyword(vendor))
             self.gui.device_tree.insert("", tk.END, values=(
-                device['ip'], mac, vendor, model, product_id, str(vulnerabilities)))
-        relevant_info = product_id if product_id.lower() != "unknown" else (
-            model if model.lower() != "unknown" else vendor)
+                device['ip'], mac, vendor, OS, device_name, str(vulnerabilities)))
+        relevant_info = device_name if device_name.lower() != "unknown" else (
+            OS if OS.lower() != "unknown" else vendor)
         if relevant_info.lower() != "unknown" and relevant_info not in self.devices:
             self.devices.append(relevant_info)
             self.save_devices()
+        logging.info("Processed device: %s", device)
 
     def search_vulnerabilities(self, user_input):
         if not user_input:
+            logging.warning("No user input provided for vulnerability search")
             return
         self.gui.vulnerability_text.delete('1.0', tk.END)
         self.gui.vulnerability_text.insert(
@@ -102,6 +114,7 @@ class DeviceManager:
         vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(
             user_input, "Unknown")
         self.display_vulnerabilities(vulnerabilities, "N/A", user_input)
+        logging.info("Searched vulnerabilities for: %s", user_input)
 
     def on_double_click(self, event):
         item = self.gui.device_tree.selection()[0]
@@ -117,13 +130,14 @@ class DeviceManager:
                 self.gui.device_tree.set(item, column, new_value)
                 entry.destroy()
                 mac = self.gui.device_tree.item(item, "values")[1]
-                self.product_ids[mac] = new_value
-                self.save_product_ids()
+                self.device_names[mac] = new_value
+                self.save_device_names()
                 self.gui.vulnerability_text.delete('1.0', tk.END)
                 vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(
                     new_value, "Unknown")
                 self.gui.device_tree.set(item, '#6', str(vulnerabilities))
                 self.display_vulnerabilities(vulnerabilities, "N/A", new_value)
+                logging.info("Edited device name for MAC %s: %s", mac, new_value)
 
             entry.bind("<Return>", save_edit)
             entry.bind("<FocusOut>", lambda e: entry.destroy())
