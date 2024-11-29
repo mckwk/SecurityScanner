@@ -77,7 +77,7 @@ class NetworkScanner:
             'mac': mac,
             'vendor': self._lookup_vendor(mac),
             'OS': self._get_os_info(nm, host, 'osfamily', 'name', 'output'),
-            'device_name': self._get_os_info(nm, host, 'cpe', 'cpe', 'output'),
+            'device_name': self._get_device_name(addresses.get('ipv4', 'Unknown')),
         }
         logger.info("Device info for host %s: %s", host, device_info)
         return device_info
@@ -119,4 +119,13 @@ class NetworkScanner:
             return "Unknown"
         except Exception:
             logger.warning("OS info lookup failed for host %s", host)
+            return "Unknown"
+        
+    def _get_device_name(self, ip):
+        try:
+            hostname, _, _ = socket.gethostbyaddr(ip)
+            logger.info("Hostname for IP %s: %s", ip, hostname)
+            return hostname
+        except socket.herror:
+            logger.warning("Hostname lookup failed for IP %s", ip)
             return "Unknown"
