@@ -14,14 +14,14 @@ class DeviceManager:
     def __init__(self, gui):
         self.gui = gui
         self.data_folder = config.DATA_FOLDER
-        self.device_names_file = config.DEVICE_NAMES_FILE
-        self.devices_file = config.DATA_FILE
-        self.device_names = self.load_device_names()
-        self.devices = self.load_devices()
+        self.device_info_file = config.DEVICE_INFO_FILE
+        self.notification_list_file = config.DATA_FILE
+        self.device_info = self.load_device_info()
+        self.notification_list = self.load_notification_list()
 
-    def load_device_names(self):
-        if os.path.exists(self.device_names_file):
-            with open(self.device_names_file, "r") as file:
+    def load_device_info(self):
+        if os.path.exists(self.device_info_file):
+            with open(self.device_info_file, "r") as file:
                 data = json.load(file)
                 if isinstance(data, dict):
                     logging.info("Device names loaded successfully")
@@ -32,25 +32,24 @@ class DeviceManager:
         logging.warning("Device names file does not exist")
         return {}
 
-    def save_device_names(self):
+    def save_device_info(self):
         os.makedirs(self.data_folder, exist_ok=True)
-        with open(self.device_names_file, "w") as file:
-            json.dump(self.device_names, file)
-        logging.info("Device names saved successfully")
+        with open(self.device_info_file, "w") as file:
+            json.dump(self.device_info, file, indent=4)
 
-    def load_devices(self):
-        if os.path.exists(self.devices_file):
-            with open(self.devices_file, "r") as file:
+    def load_notification_list(self):
+        if os.path.exists(self.notification_list_file):
+            with open(self.notification_list_file, "r") as file:
                 logging.info("Devices loaded successfully")
                 return json.load(file)
         logging.warning("Devices file does not exist")
         return []
 
-    def save_devices(self):
+    def save_notification_list(self):
         os.makedirs(self.data_folder, exist_ok=True)
-        with open(self.devices_file, "w") as file:
-            json.dump(self.devices, file, indent=4)
-        logging.info("Devices saved successfully")
+        with open(self.notification_list_file, "w") as file:
+            json.dump(self.notification_list, file, indent=4)
+        self.save_device_info()
 
     def on_device_select(self, event):
         selected_item = self.gui.device_tree.selection()
@@ -80,15 +79,15 @@ class DeviceManager:
                     published_date, '%Y-%m-%dT%H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')
             except ValueError:
                 pass
-            resolved = 'Yes' if cve.get(
-                'lastModified', '') != published_date else 'No'
-            self.gui.vulnerability_text.insert(
-                tk.END, f"CVE ID: {cve_id}\nDescription: {description}\nSeverity: {severity}\nPublished Date: {published_date}\nResolved: {resolved}\n{'-' * 80}\n")
 
     def process_device(self, device):
         vendor, OS, mac = device['vendor'], device['OS'], device['mac']
-        device_name = self.device_names.get(
-            mac, device.get('device_name', 'unknown'))
+        device_info = self.device_info.get(mac, {})
+        if isinstance(device_info, str):
+            device_info = {"device_name": device_info}
+        device_name = device_info.get('device_name', device.get('device_name', 'unknown'))
+        vulnerabilities = []  # Initialize vulnerabilities
+
         if vendor == "Unknown":
             self.gui.device_tree.insert("", tk.END, values=(
                 device['ip'], mac, vendor, OS, device_name, "[]"))
@@ -97,11 +96,21 @@ class DeviceManager:
             ) != "unknown" else self.gui.vulnerability_checker.search_vulnerabilities(OS, self.gui.vulnerability_checker.extract_keyword(vendor))
             self.gui.device_tree.insert("", tk.END, values=(
                 device['ip'], mac, vendor, OS, device_name, str(vulnerabilities)))
+        
         relevant_info = device_name if device_name.lower() != "unknown" else (
             OS if OS.lower() != "unknown" else vendor)
-        if relevant_info.lower() != "unknown" and relevant_info not in self.devices:
-            self.devices.append(relevant_info)
-            self.save_devices()
+        if relevant_info.lower() != "unknown" and relevant_info not in self.notification_list:
+            self.notification_list.append(relevant_info)
+            self.save_notification_list()
+        
+        self.device_info[mac] = {
+            "ip": device['ip'],
+            "vendor": vendor,
+            "OS": OS,
+            "device_name": device_name,
+            "vulnerabilities": vulnerabilities
+        }  # Update device_info with all device data
+        self.save_device_info()  # Save device names
         logging.info("Processed device: %s", device)
 
     def search_vulnerabilities(self, user_input):
@@ -130,12 +139,14 @@ class DeviceManager:
                 self.gui.device_tree.set(item, column, new_value)
                 entry.destroy()
                 mac = self.gui.device_tree.item(item, "values")[1]
-                self.device_names[mac] = new_value
-                self.save_device_names()
+                self.device_info[mac]["device_name"] = new_value
+                self.save_device_info()
                 self.gui.vulnerability_text.delete('1.0', tk.END)
                 vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(
                     new_value, "Unknown")
                 self.gui.device_tree.set(item, '#6', str(vulnerabilities))
+                self.device_info[mac]["vulnerabilities"] = vulnerabilities
+                self.save_device_info()
                 self.display_vulnerabilities(vulnerabilities, "N/A", new_value)
                 logging.info("Edited device name for MAC %s: %s", mac, new_value)
 

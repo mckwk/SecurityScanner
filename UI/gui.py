@@ -101,7 +101,7 @@ class GUI:
         self.vulnerability_text.delete('1.0', tk.END)
         self._toggle_frames(selected_mode)
         if selected_mode == "Notification System":
-            self.notification_manager.load_devices_from_json()
+            self.notification_manager.load_notification_list_from_json()
 
     def _toggle_frames(self, mode):
         frames = {

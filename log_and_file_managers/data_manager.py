@@ -10,21 +10,21 @@ class DataManager:
         self.history_file = history_file
         self.logger = logger
 
-    def save_devices_to_json(self, devices):
+    def save_notification_list_to_json(self, notification_list):
         os.makedirs(self.data_folder, exist_ok=True)
         with open(self.data_file, 'w') as f:
-            json.dump(devices, f, indent=4)
+            json.dump(notification_list, f, indent=4)
         self.logger.info("Devices saved to JSON file.")
 
-    def load_devices_from_json(self):
+    def load_notification_list_from_json(self):
         if os.path.exists(self.data_file):
             try:
                 with open(self.data_file, 'r') as f:
-                    devices = json.load(f)
+                    notification_list = json.load(f)
                 self.logger.info("Devices loaded from JSON file.")
-                return devices
+                return notification_list
             except (FileNotFoundError, json.JSONDecodeError) as e:
-                self.logger.error(f"Error loading devices from JSON file: {e}")
+                self.logger.error(f"Error loading notification_list from JSON file: {e}")
         return []
 
     def save_notification_history(self, notification_history):

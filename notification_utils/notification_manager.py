@@ -40,7 +40,7 @@ class NotificationManager:
             self.open_notification_history,
             self.schedule_notifications
         )
-        self.load_devices_from_json()
+        self.load_notification_list_from_json()
 
         # Initialize scheduler
         self.scheduler = sched.scheduler()
@@ -57,7 +57,7 @@ class NotificationManager:
             return
 
         self.widgets.notification_tree.insert('', 'end', values=(device_name,))
-        self.save_devices_to_json()
+        self.save_notification_list_to_json()
         self.widgets.add_device_entry.delete(0, tk.END)
         self.logger.info(f"Device '{device_name}' added to notification list.")
 
@@ -68,20 +68,20 @@ class NotificationManager:
             return
 
         self.widgets.notification_tree.delete(selected_item)
-        self.save_devices_to_json()
+        self.save_notification_list_to_json()
         self.logger.info(
             f"Device '{selected_item}' deleted from notification list.")
 
-    def save_devices_to_json(self):
-        devices = [self.widgets.notification_tree.item(
+    def save_notification_list_to_json(self):
+        notification_list = [self.widgets.notification_tree.item(
             item, 'values')[0] for item in self.widgets.notification_tree.get_children()]
-        self.data_manager.save_devices_to_json(devices)
+        self.data_manager.save_notification_list_to_json(notification_list)
 
-    def load_devices_from_json(self):
-        devices = self.data_manager.load_devices_from_json()
+    def load_notification_list_from_json(self):
+        notification_list = self.data_manager.load_notification_list_from_json()
         self.widgets.notification_tree.delete(
             *self.widgets.notification_tree.get_children())
-        for device in devices:
+        for device in notification_list:
             self.widgets.notification_tree.insert('', 'end', values=(device,))
 
     def gather_vulnerabilities_summary(self):
@@ -181,7 +181,7 @@ class NotificationManager:
             else:
                 notification.notify(
                     title="No Vulnerabilities Found",
-                    message="No vulnerabilities were found for the devices this year.",
+                    message="No new vulnerabilities were found for the devices",
                     timeout=10
                 )
                 self.logger.info("No vulnerabilities found for the devices.")

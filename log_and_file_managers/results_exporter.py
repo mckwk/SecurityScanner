@@ -42,10 +42,6 @@ class ResultsExporter:
                 file.write(f"Severity: {severity}\n")
                 published_date = cve.get('published', 'N/A')
                 file.write(f"Published Date: {published_date}\n")
-                resolved = 'Yes' if cve.get(
-                    'vulnStatus', 'N/A') == 'Analyzed' else 'No'
-                file.write(f"Resolved: {resolved}\n")
-                file.write("-" * 80 + "\n")
             file.write("=" * 80 + "\n\n")
 
     def _export_search_results(self, file):
