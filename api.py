@@ -19,8 +19,8 @@ def scan_network():
 def search_vulnerabilities():
     model = request.form.get('model')
     vendor = request.form.get('vendor')
-    product_id = request.form.get('product_id')
-    vulnerabilities = vulnerability_checker.search_vulnerabilities(model, vendor, product_id)
+    device_info = request.form.get('device_info')
+    vulnerabilities = vulnerability_checker.search_vulnerabilities(model, vendor, device_info)
     return jsonify(vulnerabilities)
 
 @app.route('/notification_history', methods=['GET'])

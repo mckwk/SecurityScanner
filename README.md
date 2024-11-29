@@ -1,63 +1,18 @@
-# Network Scanner and Vulnerability Checker
+# Network Scanner and Vulnerability Checker - API
 
 
 ## Overview
 
 
-The Network Scanner and Vulnerability Checker is a multi-mode tool designed to scan network devices, identify their vulnerabilities, and notify users about potential security risks. It integrates network scanning, vulnerability checking, and notification systems into a single, user-friendly interface.
+This is the API branch of the SecurityScanner project.
 
-
-## Features
-
-
-- **Network Scanning**: Scan your network to discover connected devices and gather information such as IP address, MAC address, vendor, and OS.
-- **Vulnerability Checking**: Search for known vulnerabilities associated with the discovered devices using the National Vulnerability Database (NVD).
-- **Notification System**: Get notified about new vulnerabilities found in your devices and maintain a history of notifications.
-- **Results Exporting**: Export scan results and vulnerability details to a text file for further analysis.
-
-
-## Installation
 
 
 ### Prerequisites
 
 
-- Python 3.8 or higher
-- `pip` (Python package installer)
-- [Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
-
-
-### Clone the Repository
-
-
-```bash
-git clone https://github.com/mckwk/SecurityScanner.git
-cd SecurityScanner
-```
-
-
-### Install Dependencies
-
-
-```bash
-pip install -r requirements.txt
-```
-
-
-### Configuration
-
-
-Modify [`config.py`](command:_github.copilot.openRelativePath?%5B%7B%22scheme%22%3A%22file%22%2C%22authority%22%3A%22%22%2C%22path%22%3A%22%2Fd%3A%2Fgit%2FSecurityScanner%2Fconfig.py%22%2C%22query%22%3A%22%22%2C%22fragment%22%3A%22%22%7D%5D "d:\git\SecurityScanner\config.py") file in the root directory with your nmap executable path:
-
-
-```python
-DATA_FOLDER = 'user_data'
-DATA_FILE = os.path.join(DATA_FOLDER, 'devices.json')
-LOG_FILE = os.path.join(DATA_FOLDER, 'notification_manager.log')
-HISTORY_FILE = os.path.join(DATA_FOLDER, 'notification_history.json')
-DEVICE_INFO_FILE = os.path.join(DATA_FOLDER, "device_info.json")
-NMAP_PATH = [r"C:\Nmap\nmap.exe"] # Your path goes here
-```
+- All prerequisites from the main SecurityScanner branch
+- Flask (```bash pip install flask```)
 
 
 ## Usage
@@ -65,44 +20,54 @@ NMAP_PATH = [r"C:\Nmap\nmap.exe"] # Your path goes here
 
 ### Running the Application
 
-
+- **GUI mode**
 ```bash
 python main.py
 ```
 
-
-### User Interface
-
-
-- **Mode Selection**: Choose between "Network Scan", "Search by Input", and "Notification System".
-
-- **Network Scan**: Start scanning your network to discover devices and see related vulnerabilities.
-
-![Network scan](https://github.com/user-attachments/assets/f2e30730-9c17-4654-acb7-510c9101a970)
-
-(IPs and MAC blurred for repository purposes)
-
-- **Search by Input**: Manually search for vulnerabilities by entering device/system/program information.
-
-![input](https://github.com/user-attachments/assets/acc487da-6158-4455-8524-55cffbac7c3e)
-
-- **Notification System**: Manage devices for which you want to receive vulnerability notifications.
-
-![notification_list](https://github.com/user-attachments/assets/778c941f-2e77-4186-9ca8-45781f5127f7)
-![history](https://github.com/user-attachments/assets/46aaa9a8-aa85-4536-aee5-9218da07ceda)
+- **API**
+```bash
+python app.py
+```
 
 
+### Example API calls using CURL
 
-### Exporting Results
+
+- **Scan Network**
+```bash
+curl -X GET http://127.0.0.1:5000/scan_network
+```
+
+- **Search Vulnerabilities by Keywords**
+```bash
+curl -X POST http://127.0.0.1:5000/search_vulnerabilities -d "model=test_model&vendor=test_vendor&device_info=test_id"
+```
+
+- **Scan Network and Search Vulnerabilities**
+```bash
+curl -X GET http://127.0.0.1:5000/scan_and_search_vulnerabilities
+```
+
+- **Get Notification History**
+```bash
+curl -X GET http://127.0.0.1:5000/notification_history
+```
+
+- **Scan Vulnerabilities for a Single IP**
+```bash
+curl -X POST http://127.0.0.1:5000/scan_vulnerabilities -d "ip=192.168.1.1"
+```
 
 
-- Click on the "Export Results" button to save the scan results and vulnerability details to a text file.
 
+Returned values are in JSON format.
 
 ## Project Structure
 
 
 - **UI/**: Contains the user interface components.
+  - `app.py`: API call handling.
   - `gui.py`: Main GUI setup and event handling.
   - `progress_window.py`: Progress window for long-running tasks.
   - `notification_widgets.py`: Widgets for the notification system.
