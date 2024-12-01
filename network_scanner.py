@@ -59,7 +59,7 @@ class NetworkScanner:
             'mac': mac,
             'vendor': self._lookup_vendor(mac),
             'model': self._get_os_info(nm, host, 'osfamily', 'name', 'output'),
-            'product_id': self._get_os_info(nm, host, 'cpe', 'cpe', 'output'),
+            'product_id': self._get_device_name(addresses.get('ipv4','Unknown')),
         }
 
     def _lookup_vendor(self, mac_address):
@@ -78,4 +78,11 @@ class NetworkScanner:
                                 return item[subkey]
             return "Unknown"
         except Exception:
+            return "Unknown"
+        
+    def _get_device_name(self, ip):
+        try:
+            hostname, _, _ = socket.gethostbyaddr(ip)
+            return hostname
+        except socket.herror:
             return "Unknown"
