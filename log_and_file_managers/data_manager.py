@@ -4,22 +4,22 @@ from datetime import datetime
 
 
 class DataManager:
-    def __init__(self, data_folder, data_file, history_file, logger):
+    def __init__(self, data_folder, notification_list_file, history_file, logger):
         self.data_folder = data_folder
-        self.data_file = data_file
+        self.notification_list_file = notification_list_file
         self.history_file = history_file
         self.logger = logger
 
     def save_notification_list_to_json(self, notification_list):
         os.makedirs(self.data_folder, exist_ok=True)
-        with open(self.data_file, 'w') as f:
+        with open(self.notification_list_file, 'w') as f:
             json.dump(notification_list, f, indent=4)
         self.logger.info("Devices saved to JSON file.")
 
     def load_notification_list_from_json(self):
-        if os.path.exists(self.data_file):
+        if os.path.exists(self.notification_list_file):
             try:
-                with open(self.data_file, 'r') as f:
+                with open(self.notification_list_file, 'r') as f:
                     notification_list = json.load(f)
                 self.logger.info("Devices loaded from JSON file.")
                 return notification_list

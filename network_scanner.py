@@ -1,4 +1,3 @@
-import logging
 import socket
 
 import netifaces
@@ -24,10 +23,7 @@ class NetworkScanner:
             logger.info("Target IP for scanning: %s", target_ip)
             nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
             nm.scan(hosts=target_ip, arguments='-O -T4 -n')
-            devices = [
-                self._get_device_info(
-                    nm,
-                    host) for host in nm.all_hosts() if 'mac' in nm[host]['addresses']]
+            devices = [self._get_device_info(nm, host) for host in nm.all_hosts() if 'mac' in nm[host]['addresses']]
             logger.info("Scan completed. Devices found: %d", len(devices))
             return devices
         except Exception as e:
@@ -36,19 +32,20 @@ class NetworkScanner:
 
     def _discover_network_address(self):
         try:
-            local_ip = socket.gethostbyname(socket.gethostname())
-            logger.info("Local IP address: %s", local_ip)
+            local_ip = self._get_local_ip()
             netmask = self._get_netmask(local_ip)
             if netmask:
-                network_address = self._calculate_network_address(
-                    local_ip, netmask)
-                logger.info("Network address: %s", network_address)
-                return network_address
+                return self._calculate_network_address(local_ip, netmask)
             else:
                 raise RuntimeError("Unable to determine network address")
         except Exception as e:
             logger.error("Unable to determine network address: %s", e)
             raise RuntimeError(f"Unable to determine network address: {e}")
+
+    def _get_local_ip(self):
+        local_ip = socket.gethostbyname(socket.gethostname())
+        logger.info("Local IP address: %s", local_ip)
+        return local_ip
 
     def _get_netmask(self, local_ip):
         try:
@@ -58,8 +55,7 @@ class NetworkScanner:
                     for addr in addrs[netifaces.AF_INET]:
                         if addr["addr"] == local_ip:
                             netmask = addr.get("netmask")
-                            logger.info(
-                                "Netmask for interface %s: %s", iface, netmask)
+                            logger.info("Netmask for interface %s: %s", iface, netmask)
                             return netmask
             return None
         except Exception as e:
@@ -67,10 +63,7 @@ class NetworkScanner:
             return None
 
     def _calculate_network_address(self, ip, netmask):
-        network_parts = [
-            str(int(ip_part) & int(mask_part))
-            for ip_part, mask_part in zip(ip.split("."), netmask.split("."))
-        ]
+        network_parts = [str(int(ip_part) & int(mask_part)) for ip_part, mask_part in zip(ip.split("."), netmask.split("."))]
         network_address = ".".join(network_parts) + "/24"
         logger.info("Calculated network address: %s", network_address)
         return network_address
@@ -79,21 +72,11 @@ class NetworkScanner:
         addresses = nm[host]['addresses']
         mac = addresses['mac']
         device_info = {
-            'ip': addresses.get(
-                'ipv4',
-                'Unknown'),
+            'ip': addresses.get('ipv4', 'Unknown'),
             'mac': mac,
             'vendor': self._lookup_vendor(mac),
-            'OS': self._get_os_info(
-                nm,
-                host,
-                'osfamily',
-                'name',
-                'output'),
-            'device_name': self._get_device_name(
-                addresses.get(
-                    'ipv4',
-                    'Unknown')),
+            'OS': self._get_os_info(nm, host),
+            'device_name': self._get_device_name(addresses.get('ipv4', 'Unknown')),
         }
         logger.info("Device info for host %s: %s", host, device_info)
         return device_info
@@ -103,12 +86,7 @@ class NetworkScanner:
             nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
             nm.scan(hosts=ip, arguments='-O -T4 -n')
             if ip in nm.all_hosts() and 'mac' in nm[ip]['addresses']:
-                device_info = self._get_device_info(nm, ip)
-                logger.info(
-                    "Scan completed for IP %s. Device info: %s",
-                    ip,
-                    device_info)
-                return device_info
+                return self._get_device_info(nm, ip)
             else:
                 logger.warning("No device found at IP %s", ip)
                 return None
@@ -125,16 +103,15 @@ class NetworkScanner:
             logger.warning("Vendor lookup failed for MAC %s", mac_address)
             return "Unknown"
 
-    def _get_os_info(self, nm, host, *keys):
+    def _get_os_info(self, nm, host):
         try:
             for key in ['osclass', 'osmatch', 'hostscript']:
                 if key in nm[host]:
                     for item in nm[host][key]:
-                        for subkey in keys:
+                        for subkey in ['osfamily', 'name', 'output']:
                             if subkey in item:
                                 os_info = item[subkey]
-                                logger.info(
-                                    "OS info for host %s: %s", host, os_info)
+                                logger.info("OS info for host %s: %s", host, os_info)
                                 return os_info
             return "Unknown"
         except Exception:
