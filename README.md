@@ -40,8 +40,9 @@ curl -X GET http://127.0.0.1:5000/scan_network
 ```
 
 - **Search Vulnerabilities by Keywords**
+Not all keywords have to be specified.
 ```bash
-curl -X POST http://127.0.0.1:5000/search_vulnerabilities -d "model=test_model&vendor=test_vendor&device_info=test_id"
+curl -X POST http://127.0.0.1:5000/search_vulnerabilities -d "vendor=test_model&os=test_vendor&device_info=test_id"
 ```
 
 - **Scan Network and Search Vulnerabilities**
@@ -58,10 +59,9 @@ curl -X GET http://127.0.0.1:5000/notification_history
 ```bash
 curl -X POST http://127.0.0.1:5000/scan_vulnerabilities -d "ip=192.168.1.1"
 ```
-
-
-
 Returned values are in JSON format.
+
+
 
 ## Acknowledgements
 

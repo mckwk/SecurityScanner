@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request
 import config
 from log_and_file_managers.data_manager import DataManager
 from network_scanner import NetworkScanner
+from notification_utils.notification_manager import NotificationManager
 from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
 
 app = Flask(__name__)
@@ -24,11 +25,11 @@ def scan_network():
 
 @app.route('/search_vulnerabilities', methods=['POST'])
 def search_vulnerabilities():
-    model = request.form.get('model')
     vendor = request.form.get('vendor')
+    os = request.form.get('os')
     device_info = request.form.get('device_info')
     vulnerabilities = vulnerability_checker.search_vulnerabilities(
-        model, vendor, device_info)
+        vendor, os, device_info)
     return jsonify(vulnerabilities)
 
 
