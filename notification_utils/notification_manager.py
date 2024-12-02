@@ -1,3 +1,4 @@
+import json
 import os
 import sched
 import threading
@@ -8,6 +9,7 @@ from tkinter import messagebox
 
 from plyer import notification
 
+import config
 from log_and_file_managers.data_manager import DataManager
 from log_and_file_managers.logger_manager import LoggerManager
 from notification_utils.notification_history_window import \
@@ -16,6 +18,9 @@ from notification_utils.notification_widgets import NotificationWidgets
 from UI.progress_window import ProgressWindow
 from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
 
+# Configure logging
+logger_manager = LoggerManager(config.LOG_FILE)
+logger = logger_manager.get_logger()
 
 class NotificationManager:
     def __init__(self, notification_frame):
@@ -48,57 +53,68 @@ class NotificationManager:
         self.cancel_event = threading.Event()
 
     def add_device_to_notification(self):
+        logger.info("Adding device to notification list.")
         device_name = self.widgets.add_device_entry.get().strip()
         if not device_name:
             messagebox.showerror("Error", "Device name cannot be empty")
+            logger.error("Device name cannot be empty.")
             return
 
         if any(self.widgets.notification_tree.item(item, 'values')[
                0] == device_name for item in self.widgets.notification_tree.get_children()):
             messagebox.showerror("Error", "Device name already exists")
+            logger.error("Device name already exists.")
             return
 
         self.widgets.notification_tree.insert('', 'end', values=(device_name,))
         self.save_notification_list_to_json()
         self.widgets.add_device_entry.delete(0, tk.END)
-        self.logger.info(f"Device '{device_name}' added to notification list.")
+        logger.info(f"Device '{device_name}' added to notification list.")
 
     def delete_device_from_notification(self):
+        logger.info("Deleting device from notification list.")
         selected_item = self.widgets.notification_tree.selection()
         if not selected_item:
             messagebox.showerror("Error", "No device selected")
+            logger.error("No device selected.")
             return
 
         self.widgets.notification_tree.delete(selected_item)
         self.save_notification_list_to_json()
-        self.logger.info(
-            f"Device '{selected_item}' deleted from notification list.")
+        logger.info(f"Device '{selected_item}' deleted from notification list.")
 
     def save_notification_list_to_json(self):
+        logger.info("Saving notification list to JSON.")
         notification_list = [self.widgets.notification_tree.item(
             item, 'values')[0] for item in self.widgets.notification_tree.get_children()]
         self.data_manager.save_notification_list_to_json(notification_list)
+        logger.info("Notification list saved to JSON.")
 
     def load_notification_list_from_json(self):
+        logger.info("Loading notification list from JSON.")
         notification_list = self.data_manager.load_notification_list_from_json()
         self.widgets.notification_tree.delete(
             *self.widgets.notification_tree.get_children())
         for device in notification_list:
             self.widgets.notification_tree.insert('', 'end', values=(device,))
+        logger.info("Notification list loaded from JSON.")
 
     def gather_vulnerabilities_summary(self):
+        logger.info("Gathering vulnerabilities summary.")
         start_year_str = self.widgets.start_with_entry.get().strip() or '1999'
         start_year = int(start_year_str)
 
         vulnerabilities = []
         for item in self.widgets.notification_tree.get_children():
             if self.cancel_event.is_set():
+                logger.info("Scan canceled.")
                 break
             device_name = self.widgets.notification_tree.item(item, 'values')[0]
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(
-                OS=device_name, vendor="unknown", max_results=10)
+                OS=device_name, vendor="unknown")
             for vulnerability in found_vulnerabilities:
                 if self.cancel_event.is_set():
+                    logger.info("Scan canceled.")
                     break
                 if isinstance(vulnerability, dict):
                     cve = vulnerability.get('cve', {})
@@ -118,8 +134,7 @@ class NotificationManager:
                         impact_score = metrics.get('impactScore', 'Unknown')
                         exploitability_score = metrics.get(
                             'exploitabilityScore', 'Unknown')
-                        references = [ref.get('url', 'No URL')
-                                      for ref in cve.get('references', [])]
+                        references = [ref for ref in cve.get('references', [])]
                         vulnerabilities.append({
                             'device_name': device_name,
                             'id': cve_id,
@@ -131,9 +146,11 @@ class NotificationManager:
                             'exploitability_score': exploitability_score,
                             'references': references
                         })
+        logger.info("Vulnerabilities summary gathered.")
         return vulnerabilities
 
     def send_notifications(self):
+        logger.info("Sending notifications.")
         self.cancel_event.clear()
         progress_window = ProgressWindow(
             self.notification_frame,
@@ -154,6 +171,9 @@ class NotificationManager:
                 return
             new_vulnerabilities = []
             if vulnerabilities:
+                with open(self.data_file, 'r') as f:
+                    device_info = json.load(f)
+
                 for vulnerability in vulnerabilities:
                     device_name = vulnerability['device_name']
                     cve_id = vulnerability['id']
@@ -174,6 +194,7 @@ class NotificationManager:
                         new_vulnerabilities.append(vulnerability)
                         self.logger.info(
                             f"Vulnerability found in {device_name}:\nCVE ID: {cve_id}\nDescription: {description}\n")
+
                 self.save_notification_history()
                 if not new_vulnerabilities:
                     notification.notify(
@@ -200,29 +221,32 @@ class NotificationManager:
                 "Error", f"An error occurred while sending notifications: {e}")
             self.logger.error(f"Error sending notifications: {e}")
 
-        # Reschedule the next notification
-        interval = int(self.widgets.interval_combobox.get()) * 60
-        self.schedule_notifications(interval=interval)
-
     def cancel_scan(self):
+        logger.info("Canceling scan.")
         self.cancel_event.set()
 
     def schedule_notifications(self, interval=None):
+        logger.info("Scheduling notifications.")
         if interval is None:
             interval = int(self.widgets.interval_combobox.get()) * 60
         self.scheduler.enter(interval, 1, self.send_notifications)
         threading.Thread(target=self.scheduler.run).start()
 
     def save_notification_history(self):
+        logger.info("Saving notification history.")
         self.data_manager.save_notification_history(self.notification_history)
+        logger.info("Notification history saved.")
 
     def load_notification_history(self):
+        logger.info("Loading notification history.")
         return self.data_manager.load_notification_history()
 
     def open_log_file(self):
+        logger.info("Opening log file.")
         log_file_path = os.path.abspath(self.log_file)
         webbrowser.open(f'file:///{log_file_path}')
 
     def open_notification_history(self):
+        logger.info("Opening notification history window.")
         NotificationHistoryWindow(
             self.notification_frame, self.notification_history)
