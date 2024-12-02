@@ -145,7 +145,7 @@ class NetworkScanner:
         try:
             hostname, _, _ = socket.gethostbyaddr(ip)
             logger.info("Hostname for IP %s: %s", ip, hostname)
-            return hostname
+            return hostname.replace('.lan', '')
         except socket.herror:
             logger.warning("Hostname lookup failed for IP %s", ip)
             return "Unknown"
