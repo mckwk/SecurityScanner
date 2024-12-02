@@ -8,11 +8,48 @@ This is the API branch of the SecurityScanner project.
 
 
 
+## Installation
+
+
 ### Prerequisites
 
 
-- All prerequisites from the main SecurityScanner branch
-- Flask (```bash pip install flask```)
+- Python 3.8 or higher
+- `pip` (Python package installer)
+- [Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+
+
+### Clone the Repository
+
+
+```bash
+git clone --branch api https://github.com/mckwk/SecurityScanner.git
+cd SecurityScanner
+```
+
+
+### Install Dependencies
+
+
+```bash
+pip install -r requirements.txt
+```
+
+
+### Configuration
+
+
+Modify [`config.py`](command:_github.copilot.openRelativePath?%5B%7B%22scheme%22%3A%22file%22%2C%22authority%22%3A%22%22%2C%22path%22%3A%22%2Fd%3A%2Fgit%2FSecurityScanner%2Fconfig.py%22%2C%22query%22%3A%22%22%2C%22fragment%22%3A%22%22%7D%5D "d:\git\SecurityScanner\config.py") file in the root directory with your nmap executable path:
+
+
+```python
+DATA_FOLDER = 'user_data'
+DATA_FILE = os.path.join(DATA_FOLDER, 'devices.json')
+LOG_FILE = os.path.join(DATA_FOLDER, 'notification_manager.log')
+HISTORY_FILE = os.path.join(DATA_FOLDER, 'notification_history.json')
+PRODUCT_IDS_FILE = os.path.join(DATA_FOLDER, "product_ids.json")
+NMAP_PATH = [r"D:\Nmap\nmap.exe"] # Your path goes here
+```
 
 
 ## Usage
