@@ -94,44 +94,43 @@ class NotificationManager:
         for item in self.widgets.notification_tree.get_children():
             if self.cancel_event.is_set():
                 break
-            device_name = self.widgets.notification_tree.item(item, 'values')[
-                0]
+            device_name = self.widgets.notification_tree.item(item, 'values')[0]
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(
                 OS=device_name, vendor="unknown", max_results=10)
             for vulnerability in found_vulnerabilities:
                 if self.cancel_event.is_set():
                     break
-                cve = vulnerability.get('cve', {})
-                published_date_str = cve.get('published', 'Unknown')
-                try:
-                    published_date = datetime.strptime(
-                        published_date_str, '%Y-%m-%dT%H:%M:%S.%f')
-                except ValueError:
-                    published_date = None
+                if isinstance(vulnerability, dict):
+                    cve = vulnerability.get('cve', {})
+                    published_date_str = cve.get('published', 'Unknown')
+                    try:
+                        published_date = datetime.strptime(
+                            published_date_str, '%Y-%m-%dT%H:%M:%S.%f')
+                    except ValueError:
+                        published_date = None
 
-                if published_date and published_date.year >= start_year:
-                    cve_id = cve.get('id', 'Unknown ID')
-                    description = cve.get('descriptions', [{}])[0].get(
-                        'value', 'No description available')
-                    metrics = cve.get('metrics', {}).get(
-                        'cvssMetricV2', [{}])[0]
-                    severity = metrics.get('baseSeverity', 'Unknown')
-                    impact_score = metrics.get('impactScore', 'Unknown')
-                    exploitability_score = metrics.get(
-                        'exploitabilityScore', 'Unknown')
-                    references = [ref.get('url', 'No URL')
-                                  for ref in cve.get('references', [])]
-                    vulnerabilities.append({
-                        'device_name': device_name,
-                        'id': cve_id,
-                        'description': description,
-                        'published': published_date_str,
-                        'last_modified': cve.get('lastModified', 'Unknown'),
-                        'severity': severity,
-                        'impact_score': impact_score,
-                        'exploitability_score': exploitability_score,
-                        'references': references
-                    })
+                    if published_date and published_date.year >= start_year:
+                        cve_id = cve.get('id', 'Unknown ID')
+                        description = cve.get('descriptions', 'No description available')
+                        metrics = cve.get('metrics', {}).get(
+                            'cvssMetricV2', [{}])[0]
+                        severity = metrics.get('baseSeverity', 'Unknown')
+                        impact_score = metrics.get('impactScore', 'Unknown')
+                        exploitability_score = metrics.get(
+                            'exploitabilityScore', 'Unknown')
+                        references = [ref.get('url', 'No URL')
+                                      for ref in cve.get('references', [])]
+                        vulnerabilities.append({
+                            'device_name': device_name,
+                            'id': cve_id,
+                            'description': description,
+                            'published': published_date_str,
+                            'last_modified': cve.get('lastModified', 'Unknown'),
+                            'severity': severity,
+                            'impact_score': impact_score,
+                            'exploitability_score': exploitability_score,
+                            'references': references
+                        })
         return vulnerabilities
 
     def send_notifications(self):
