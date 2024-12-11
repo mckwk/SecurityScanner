@@ -13,6 +13,7 @@ from log_and_file_managers.logger_manager import LoggerManager
 logger_manager = LoggerManager(config.LOG_FILE)
 logger = logger_manager.get_logger()
 
+
 class DeviceManager:
     def __init__(self, gui):
         self.gui = gui
@@ -87,10 +88,12 @@ class DeviceManager:
         cve = vuln.get('cve', {})
         cve_id = cve.get('id', 'Unknown ID')
         description = cve.get('descriptions', 'No description available')
-        severity = cve.get('metrics', {}).get('cvssMetricV2', [{}])[0].get('baseSeverity', 'Unknown')
+        severity = cve.get('metrics', {}).get('cvssMetricV2', [{}])[
+            0].get('baseSeverity', 'Unknown')
         published_date = cve.get('published', 'Unknown')
         try:
-            published_date = datetime.strptime(published_date, '%Y-%m-%dT%H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')
+            published_date = datetime.strptime(
+                published_date, '%Y-%m-%dT%H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')
         except ValueError:
             pass
         self.gui.vulnerability_text.insert(
@@ -100,7 +103,8 @@ class DeviceManager:
     def process_device(self, device):
         vendor, OS, mac = device['vendor'], device['OS'], device['mac']
         device_info = self.get_device_info(mac, device)
-        vulnerabilities = self.get_vulnerabilities(vendor, OS, device_info['device_name'])
+        vulnerabilities = self.get_vulnerabilities(
+            vendor, OS, device_info['device_name'])
         self.insert_device_to_tree(device, device_info, vulnerabilities)
         self.update_notification_list(vendor, OS, device_info['device_name'])
         self.save_notification_list()
@@ -112,7 +116,8 @@ class DeviceManager:
         device_info = self.device_info.get(mac, {})
         if isinstance(device_info, str):
             device_info = {"device_name": device_info}
-        device_info['device_name'] = device_info.get('device_name', device.get('device_name', 'unknown'))
+        device_info['device_name'] = device_info.get(
+            'device_name', device.get('device_name', 'unknown'))
         return device_info
 
     def get_vulnerabilities(self, vendor, OS, device_name):
@@ -154,7 +159,8 @@ class DeviceManager:
         self.gui.vulnerability_text.delete('1.0', tk.END)
         self.gui.vulnerability_text.insert(
             tk.END, f"Searching vulnerabilities for: {user_input}\n{'=' * 80}\n")
-        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(user_input, "Unknown")
+        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(
+            user_input, "Unknown")
         self.display_vulnerabilities(vulnerabilities, "N/A", user_input)
         logger.info("Searched vulnerabilities for: %s", user_input)
 
@@ -169,7 +175,8 @@ class DeviceManager:
         entry = ttk.Entry(self.gui.device_tree)
         entry.grid(row=0, column=0)
         entry.focus_set()
-        entry.bind("<Return>", lambda e: self.save_edit(e, item, column, entry))
+        entry.bind("<Return>", lambda e: self.save_edit(
+            e, item, column, entry))
 
     def save_edit(self, event, item, column, entry):
         new_value = entry.get()
@@ -179,7 +186,8 @@ class DeviceManager:
         self.device_info[mac]["device_name"] = new_value
         self.save_device_info()
         self.gui.vulnerability_text.delete('1.0', tk.END)
-        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(new_value, "Unknown")
+        vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(
+            new_value, "Unknown")
         self.gui.device_tree.set(item, '#6', str(vulnerabilities))
         self.device_info[mac]["vulnerabilities"] = vulnerabilities
         self.save_device_info()

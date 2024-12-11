@@ -71,9 +71,9 @@ python app.py
 ### Example API calls using CURL
 
 
-- **Scan Network**
+- **Network Scan**
 ```bash
-curl -X GET http://127.0.0.1:5000/scan_network
+curl -X GET http://127.0.0.1:5000/network_scan
 ```
 
 - **Full Network Scan** 

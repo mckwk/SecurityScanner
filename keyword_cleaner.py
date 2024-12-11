@@ -1,8 +1,10 @@
-import re
-import spacy
 import logging
+import re
+
+import spacy
 
 logger = logging.getLogger(__name__)
+
 
 class KeywordCleaner:
     SUFFIXES = ['Inc.', 'Ltd.', 'Co.', 'Corporation', 'LLC',
@@ -15,10 +17,12 @@ class KeywordCleaner:
 
     def clean_vendor_name(self, vendor_name):
         # Remove suffixes
-        pattern = re.compile(r'\b(?:' + '|'.join(self.SUFFIXES) + r')\b', re.IGNORECASE)
+        pattern = re.compile(
+            r'\b(?:' + '|'.join(self.SUFFIXES) + r')\b', re.IGNORECASE)
         vendor_name = pattern.sub('', vendor_name).strip()
         # Remove common patterns like "Inc.", "Ltd.", etc.
-        vendor_name = re.sub(r'\b(?:inc|ltd|co|corporation|llc|sa|gmbh|ag|pvt|plc|limited)\b', '', vendor_name, flags=re.IGNORECASE)
+        vendor_name = re.sub(
+            r'\b(?:inc|ltd|co|corporation|llc|sa|gmbh|ag|pvt|plc|limited)\b', '', vendor_name, flags=re.IGNORECASE)
         # Remove non-alphanumeric characters except spaces
         cleaned_name = re.sub(r'[^\w\s]', '', vendor_name)
         # Remove extra spaces
@@ -38,6 +42,7 @@ class KeywordCleaner:
             for brand in self.KNOWN_BRANDS:
                 if brand in keyword:
                     return brand
-        best_keyword = keywords[0] if keywords else cleaned_name.split()[0].lower()
+        best_keyword = keywords[0] if keywords else cleaned_name.split()[
+            0].lower()
         logger.info("Best keyword selected: %s", best_keyword)
         return best_keyword

@@ -23,13 +23,14 @@ class NetworkScanner:
             target_ip = self._discover_network_address()
             logger.info("Target IP for scanning: %s", target_ip)
             self.nm.scan(hosts=target_ip, arguments='-O -T4 -n')
-            devices = [self._get_device_info(self.nm, host) for host in self.nm.all_hosts() if 'mac' in self.nm[host]['addresses']]
+            devices = [self._get_device_info(self.nm, host) for host in self.nm.all_hosts(
+            ) if 'mac' in self.nm[host]['addresses']]
             logger.info("Scan completed. Devices found: %d", len(devices))
             return devices
         except Exception as e:
             logger.error("Error scanning network: %s", e)
             return []
-        
+
     def full_network_scan(self):
         target_ip = self._discover_network_address()
         self.nm.scan(hosts=target_ip, arguments='-sS -O -sV')
@@ -88,7 +89,8 @@ class NetworkScanner:
                     for addr in addrs[netifaces.AF_INET]:
                         if addr["addr"] == local_ip:
                             netmask = addr.get("netmask")
-                            logger.info("Netmask for interface %s: %s", iface, netmask)
+                            logger.info(
+                                "Netmask for interface %s: %s", iface, netmask)
                             return netmask
             return None
         except Exception as e:
@@ -96,7 +98,8 @@ class NetworkScanner:
             return None
 
     def _calculate_network_address(self, ip, netmask):
-        network_parts = [str(int(ip_part) & int(mask_part)) for ip_part, mask_part in zip(ip.split("."), netmask.split("."))]
+        network_parts = [str(int(ip_part) & int(mask_part))
+                         for ip_part, mask_part in zip(ip.split("."), netmask.split("."))]
         network_address = ".".join(network_parts) + "/24"
         logger.info("Calculated network address: %s", network_address)
         return network_address
@@ -144,7 +147,8 @@ class NetworkScanner:
                         for subkey in ['osfamily', 'name', 'output']:
                             if subkey in item:
                                 os_info = item[subkey]
-                                logger.info("OS info for host %s: %s", host, os_info)
+                                logger.info(
+                                    "OS info for host %s: %s", host, os_info)
                                 return os_info
             return "Unknown"
         except Exception:

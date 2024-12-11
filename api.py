@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 
 import config
+from device_manager import DeviceManager
 from log_and_file_managers.data_manager import DataManager
 from network_scanner import NetworkScanner
 from notification_utils.notification_manager import NotificationManager
@@ -10,20 +11,27 @@ app = Flask(__name__)
 
 network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH)
 vulnerability_checker = VulnerabilityChecker()
+device_manager = DeviceManager(None)
 data_manager = DataManager(
     config.DATA_FOLDER,
     config.DATA_FILE,
     config.HISTORY_FILE,
-    None)
+    config.DEVICE_INFO_FILE)
+
 
 @app.route('/full_network_scan', methods=['GET'])
 def full_network_scan():
     devices = network_scanner.full_network_scan()
     return jsonify(devices)
 
-@app.route('/scan_network', methods=['GET'])
-def scan_network():
+
+@app.route('/network_scan', methods=['GET'])
+def network_scan():
     devices = network_scanner.scan_network()
+    for device in devices:
+        device['vulnerabilities'] = []
+    device_manager.device_info = devices
+    device_manager.save_device_info()
     return jsonify(devices)
 
 
@@ -59,6 +67,8 @@ def scan_and_search_vulnerabilities():
         vulnerabilities = vulnerability_checker.search_vulnerabilities(
             device['OS'], device['vendor'], device['device_name'])
         device['vulnerabilities'] = vulnerabilities
+    device_manager.device_info = devices
+    device_manager.save_device_info()
     return jsonify(devices)
 
 

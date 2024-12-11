@@ -22,6 +22,7 @@ from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
 logger_manager = LoggerManager(config.LOG_FILE)
 logger = logger_manager.get_logger()
 
+
 class NotificationManager:
     def __init__(self, notification_frame):
         from config import DATA_FILE, DATA_FOLDER, HISTORY_FILE, LOG_FILE
@@ -81,7 +82,8 @@ class NotificationManager:
 
         self.widgets.notification_tree.delete(selected_item)
         self.save_notification_list_to_json()
-        logger.info(f"Device '{selected_item}' deleted from notification list.")
+        logger.info(
+            f"Device '{selected_item}' deleted from notification list.")
 
     def save_notification_list_to_json(self):
         logger.info("Saving notification list to JSON.")
@@ -109,7 +111,8 @@ class NotificationManager:
             if self.cancel_event.is_set():
                 logger.info("Scan canceled.")
                 break
-            device_name = self.widgets.notification_tree.item(item, 'values')[0]
+            device_name = self.widgets.notification_tree.item(item, 'values')[
+                0]
             found_vulnerabilities = self.vulnerability_checker.search_vulnerabilities(
                 OS=device_name, vendor="unknown")
             for vulnerability in found_vulnerabilities:
@@ -127,7 +130,8 @@ class NotificationManager:
 
                     if published_date and published_date.year >= start_year:
                         cve_id = cve.get('id', 'Unknown ID')
-                        description = cve.get('descriptions', 'No description available')
+                        description = cve.get(
+                            'descriptions', 'No description available')
                         metrics = cve.get('metrics', {}).get(
                             'cvssMetricV2', [{}])[0]
                         severity = metrics.get('baseSeverity', 'Unknown')
