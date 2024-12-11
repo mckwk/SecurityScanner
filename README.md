@@ -76,6 +76,12 @@ python app.py
 curl -X GET http://127.0.0.1:5000/scan_network
 ```
 
+- **Full Network Scan** 
+This scan gives more device info than the regular scan, but also takes longer to run.
+```bash
+curl -X GET http://127.0.0.1:5000/full_network_scan
+```
+
 - **Search Vulnerabilities by Keywords**
 Not all keywords have to be specified.
 ```bash

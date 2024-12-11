@@ -16,6 +16,10 @@ data_manager = DataManager(
     config.HISTORY_FILE,
     None)
 
+@app.route('/full_network_scan', methods=['GET'])
+def full_network_scan():
+    devices = network_scanner.full_network_scan()
+    return jsonify(devices)
 
 @app.route('/scan_network', methods=['GET'])
 def scan_network():

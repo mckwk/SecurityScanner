@@ -15,20 +15,53 @@ class NetworkScanner:
     def __init__(self, nmap_path):
         self.nmap_path = nmap_path
         self.mac_lookup = MacLookup()
+        self.nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
         logger.info("NetworkScanner initialized with nmap path: %s", nmap_path)
 
     def scan_network(self):
         try:
             target_ip = self._discover_network_address()
             logger.info("Target IP for scanning: %s", target_ip)
-            nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
-            nm.scan(hosts=target_ip, arguments='-O -T4 -n')
-            devices = [self._get_device_info(nm, host) for host in nm.all_hosts() if 'mac' in nm[host]['addresses']]
+            self.nm.scan(hosts=target_ip, arguments='-O -T4 -n')
+            devices = [self._get_device_info(self.nm, host) for host in self.nm.all_hosts() if 'mac' in self.nm[host]['addresses']]
             logger.info("Scan completed. Devices found: %d", len(devices))
             return devices
         except Exception as e:
             logger.error("Error scanning network: %s", e)
             return []
+        
+    def full_network_scan(self):
+        target_ip = self._discover_network_address()
+        self.nm.scan(hosts=target_ip, arguments='-sS -O -sV')
+        devices = []
+
+        for host in self.nm.all_hosts():
+            device_info = {
+                'ip': host,
+                'hostname': self.nm[host].hostname(),
+                'state': self.nm[host].state(),
+                'os': self.nm[host]['osclass'][0]['osfamily'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
+                'os_accuracy': self.nm[host]['osclass'][0]['accuracy'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
+                'os_vendor': self.nm[host]['osclass'][0]['vendor'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
+                'os_version': self.nm[host]['osclass'][0]['osgen'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
+                'services': []
+            }
+
+            if 'tcp' in self.nm[host]:
+                for port in self.nm[host]['tcp']:
+                    service_info = {
+                        'port': port,
+                        'state': self.nm[host]['tcp'][port]['state'],
+                        'name': self.nm[host]['tcp'][port]['name'],
+                        'product': self.nm[host]['tcp'][port]['product'],
+                        'version': self.nm[host]['tcp'][port]['version'],
+                        'extrainfo': self.nm[host]['tcp'][port]['extrainfo']
+                    }
+                    device_info['services'].append(service_info)
+
+            devices.append(device_info)
+
+        return devices
 
     def _discover_network_address(self):
         try:
