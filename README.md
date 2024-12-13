@@ -72,14 +72,29 @@ python app.py
 
 
 - **Network Scan**
+Specifying network address is optional.
 ```bash
 curl -X GET http://127.0.0.1:5000/network_scan
+curl -X GET "http://127.0.0.1:5000/network_scan?network=192.168.0.0/24"
 ```
 
 - **Full Network Scan** 
-This scan gives more device info than the regular scan, but also takes longer to run.
+This scan gives more device info than the regular scan, but also takes longer to run. Specifying network address is optional.
 ```bash
 curl -X GET http://127.0.0.1:5000/full_network_scan
+curl -X GET "http://127.0.0.1:5000/full_network_scan?network=192.168.0.0/24"
+```
+
+- **Network Scan and Vulnerability Search**
+Specifying network address is optional.
+```bash
+curl -X GET http://127.0.0.1:5000/scan_and_search_vulnerabilities
+curl -X GET "http://127.0.0.1:5000/scan_and_search_vulnerabilities?network=192.168.0.0/24"
+```
+
+- **Scan Vulnerabilities for a Single IP**
+```bash
+curl -X POST http://127.0.0.1:5000/scan_vulnerabilities?ip=192.168.0.0"
 ```
 
 - **Search Vulnerabilities by Keywords**
@@ -88,20 +103,11 @@ Not all keywords have to be specified.
 curl -X POST http://127.0.0.1:5000/search_vulnerabilities -d "vendor=test_model&os=test_vendor&device_info=test_id"
 ```
 
-- **Scan Network and Search Vulnerabilities**
-```bash
-curl -X GET http://127.0.0.1:5000/scan_and_search_vulnerabilities
-```
-
 - **Get Notification History**
 ```bash
 curl -X GET http://127.0.0.1:5000/notification_history
 ```
 
-- **Scan Vulnerabilities for a Single IP**
-```bash
-curl -X POST http://127.0.0.1:5000/scan_vulnerabilities -d "ip=192.168.1.1"
-```
 Returned values are in JSON format.
 
 

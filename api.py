@@ -16,18 +16,21 @@ data_manager = DataManager(
     config.DATA_FOLDER,
     config.DATA_FILE,
     config.HISTORY_FILE,
-    config.DEVICE_INFO_FILE)
+    config.DEVICE_INFO_FILE
+)
 
 
 @app.route('/full_network_scan', methods=['GET'])
 def full_network_scan():
-    devices = network_scanner.full_network_scan()
+    network = request.args.get('network')
+    devices = network_scanner.full_network_scan(network)
     return jsonify(devices)
 
 
 @app.route('/network_scan', methods=['GET'])
 def network_scan():
-    devices = network_scanner.scan_network()
+    network = request.args.get('network')
+    devices = network_scanner.scan_network(network)
     for device in devices:
         device['vulnerabilities'] = []
     device_manager.device_info = devices
@@ -53,7 +56,7 @@ def notification_history():
 
 @app.route('/scan_vulnerabilities', methods=['POST'])
 def scan_vulnerabilities():
-    ip = request.form.get('ip')
+    ip = request.args.get('ip')
     device_info = network_scanner._scan_single_ip(ip)
     vulnerabilities = vulnerability_checker.search_vulnerabilities(
         device_info['OS'], device_info['vendor'], device_info['device_name'])
@@ -62,7 +65,8 @@ def scan_vulnerabilities():
 
 @app.route('/scan_and_search_vulnerabilities', methods=['GET'])
 def scan_and_search_vulnerabilities():
-    devices = network_scanner.scan_network()
+    network = request.args.get('network')
+    devices = network_scanner.scan_network(network)
     for device in devices:
         vulnerabilities = vulnerability_checker.search_vulnerabilities(
             device['OS'], device['vendor'], device['device_name'])

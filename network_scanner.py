@@ -18,9 +18,9 @@ class NetworkScanner:
         self.nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
         logger.info("NetworkScanner initialized with nmap path: %s", nmap_path)
 
-    def scan_network(self):
+    def scan_network(self, network=None):
         try:
-            target_ip = self._discover_network_address()
+            target_ip = network if network else self._discover_network_address()
             logger.info("Target IP for scanning: %s", target_ip)
             self.nm.scan(hosts=target_ip, arguments='-O -T4 -n')
             devices = [self._get_device_info(self.nm, host) for host in self.nm.all_hosts(
@@ -31,8 +31,8 @@ class NetworkScanner:
             logger.error("Error scanning network: %s", e)
             return []
 
-    def full_network_scan(self):
-        target_ip = self._discover_network_address()
+    def full_network_scan(self, network=None):
+        target_ip = network if network else self._discover_network_address()
         self.nm.scan(hosts=target_ip, arguments='-sS -O -sV')
         devices = []
 
@@ -145,7 +145,7 @@ class NetworkScanner:
                 if key in nm[host]:
                     for item in nm[host][key]:
                         for subkey in ['osfamily', 'name', 'output']:
-                            if subkey in item:
+                            if (subkey in item):
                                 os_info = item[subkey]
                                 logger.info(
                                     "OS info for host %s: %s", host, os_info)
