@@ -5,8 +5,9 @@ import tkinter as tk
 from datetime import datetime
 from tkinter import ttk
 
-import config
 from keyword_cleaner import KeywordCleaner
+
+import config
 from log_and_file_managers.logger_manager import LoggerManager
 
 # Configure logging
