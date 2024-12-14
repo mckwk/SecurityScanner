@@ -94,7 +94,7 @@ curl -X GET "http://127.0.0.1:5000/scan_and_search_vulnerabilities?network=192.1
 
 - **Scan Vulnerabilities for a Single IP**
 ```bash
-curl -X POST http://127.0.0.1:5000/scan_vulnerabilities?ip=192.168.0.0"
+curl -X POST "http://127.0.0.1:5000/scan_vulnerabilities?ip=192.168.0.0"
 ```
 
 - **Search Vulnerabilities by Keywords**
