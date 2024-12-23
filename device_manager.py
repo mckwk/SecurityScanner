@@ -5,7 +5,7 @@ import tkinter as tk
 from datetime import datetime
 from tkinter import ttk
 
-from keyword_cleaner import KeywordCleaner
+from vulnerability_utils.keyword_cleaner import KeywordCleaner
 
 import config
 from log_and_file_managers.logger_manager import LoggerManager

@@ -4,7 +4,7 @@ import sched
 import threading
 import tkinter as tk
 import webbrowser
-from datetime import datetime, timedelta
+from datetime import datetime
 from tkinter import messagebox
 
 from plyer import notification

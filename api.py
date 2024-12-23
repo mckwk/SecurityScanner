@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from network_scanner import NetworkScanner
+from network_utils.network_scanner import NetworkScanner
 
 import config
 from device_manager import DeviceManager
