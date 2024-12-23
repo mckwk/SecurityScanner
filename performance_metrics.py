@@ -34,7 +34,7 @@ def measure_cpu_usage(duration=5, interval=1):
     process = psutil.Process(os.getpid())
     max_cpu_percent = 0
     for _ in range(int(duration / interval)):
-        cpu_percent = process.cpu_percent(interval=interval)
+        cpu_percent = process.cpu_percent(interval=interval) / psutil.cpu_count()
         if cpu_percent > max_cpu_percent:
             max_cpu_percent = cpu_percent
     return max_cpu_percent
@@ -67,7 +67,7 @@ def append_to_excel(file_path, data):
     else:
         workbook = Workbook()
         sheet = workbook.active
-        sheet.append(["Timestamp", "Run no.", "Init Time (s)", "Network Scan Time (s)", "Vuln Search Time (s)", "Memory Usage (MB)", "CPU Percent (%)", "Bytes Sent (KB)", "Bytes Received (KB)"])
+        sheet.append(["Timestamp", "Run no.", "Init Time (s)", "Network Scan Time (s)", "Vuln Search Time (s)", "Memory Usage (MB)", "CPU Percent (%)", "Data Sent (KB)", "Data Received (KB)"])
         next_run = 1 
 
     data[0] = next_run 
