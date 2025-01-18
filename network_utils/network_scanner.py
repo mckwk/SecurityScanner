@@ -39,6 +39,7 @@ class NetworkScanner:
         for host in self.nm.all_hosts():
             device_info = {
                 'ip': host,
+                'mac': self.nm[host]['addresses'].get('mac', None),
                 'hostname': self.nm[host].hostname(),
                 'state': self.nm[host].state(),
                 'os': self.nm[host]['osclass'][0]['osfamily'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
