@@ -4,8 +4,8 @@ from network_utils.network_scanner import NetworkScanner
 import config
 from device_manager import DeviceManager
 from log_and_file_managers.data_manager import DataManager
-from notification_utils.notification_manager import NotificationManager
 from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
+from log_and_file_managers.common_logger import logger
 
 app = Flask(__name__)
 
@@ -19,9 +19,9 @@ data_manager = DataManager(
     config.DEVICE_INFO_FILE
 )
 
-
 @app.route('/full_network_scan', methods=['GET'])
 def full_network_scan():
+    logger.info("Starting full network scan")
     network = request.args.get('network')
     devices = network_scanner.full_network_scan(network)
     return jsonify(devices)

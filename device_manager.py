@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import tkinter as tk
 from datetime import datetime
@@ -8,11 +7,7 @@ from tkinter import ttk
 from vulnerability_utils.keyword_cleaner import KeywordCleaner
 
 import config
-from log_and_file_managers.logger_manager import LoggerManager
-
-# Configure logging
-logger_manager = LoggerManager(config.LOG_FILE)
-logger = logger_manager.get_logger()
+from log_and_file_managers.common_logger import logger
 
 
 class DeviceManager:

@@ -1,15 +1,10 @@
 import socket
-
 import netifaces
 import nmap
 from mac_vendor_lookup import MacLookup
 
 import config
-from log_and_file_managers.logger_manager import LoggerManager
-
-logger_manager = LoggerManager(config.LOG_FILE)
-logger = logger_manager.get_logger()
-
+from log_and_file_managers.common_logger import logger
 
 class NetworkScanner:
     def __init__(self, nmap_path, interfaces=None):

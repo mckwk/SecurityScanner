@@ -11,16 +11,12 @@ from plyer import notification
 
 import config
 from log_and_file_managers.data_manager import DataManager
-from log_and_file_managers.logger_manager import LoggerManager
 from notification_utils.notification_history_window import \
     NotificationHistoryWindow
 from notification_utils.notification_widgets import NotificationWidgets
 from UI.progress_window import ProgressWindow
 from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
-
-# Configure logging
-logger_manager = LoggerManager(config.LOG_FILE)
-logger = logger_manager.get_logger()
+from log_and_file_managers.common_logger import logger
 
 
 class NotificationManager:
@@ -32,11 +28,9 @@ class NotificationManager:
         self.data_file = DATA_FILE
         self.log_file = LOG_FILE
         self.history_file = HISTORY_FILE
-        self.logger_manager = LoggerManager(self.log_file)
-        self.logger = self.logger_manager.get_logger()
         self.vulnerability_checker = VulnerabilityChecker()
         self.data_manager = DataManager(
-            self.data_folder, self.data_file, self.history_file, self.logger)
+            self.data_folder, self.data_file, self.history_file, logger)
         self.notification_history = self.data_manager.load_notification_history()
         self.widgets = NotificationWidgets(
             notification_frame,
@@ -165,13 +159,13 @@ class NotificationManager:
 
     def _send_notifications(self, progress_window):
         try:
-            self.logger.info("\n" + "_" * 50 + "\n")
+            logger.info("\n" + "_" * 50 + "\n")
             start_time = datetime.now()
-            self.logger.info(f"Scan started at {start_time}")
+            logger.info(f"Scan started at {start_time}")
             vulnerabilities = self.gather_vulnerabilities_summary()
             progress_window.destroy()
             if self.cancel_event.is_set():
-                self.logger.info("Scan was canceled.")
+                logger.info("Scan was canceled.")
                 return
             new_vulnerabilities = []
             if vulnerabilities:
@@ -196,7 +190,7 @@ class NotificationManager:
                         )
                         self.notification_history.append(vulnerability)
                         new_vulnerabilities.append(vulnerability)
-                        self.logger.info(
+                        logger.info(
                             f"Vulnerability found in {device_name}:\nCVE ID: {cve_id}\nDescription: {description}\n")
 
                 self.save_notification_history()
@@ -206,24 +200,24 @@ class NotificationManager:
                         message="All vulnerabilities were previously sent.",
                         timeout=10
                     )
-                self.logger.info(
+                logger.info(
                     "Notifications sent for found vulnerabilities.")
             else:
                 notification.notify(
                     title="No Vulnerabilities Found",
                     message="No new vulnerabilities were found for the devices",
                     timeout=10)
-                self.logger.info("No vulnerabilities found for the devices.")
+                logger.info("No vulnerabilities found for the devices.")
             end_time = datetime.now()
-            self.logger.info(f"Scan ended at {end_time}")
-            self.logger.info(f"Total scan duration: {end_time - start_time}")
-            self.logger.debug("Flushing logs.")
-            self.logger_manager.prepend_log_file()
+            logger.info(f"Scan ended at {end_time}")
+            logger.info(f"Total scan duration: {end_time - start_time}")
+            logger.debug("Flushing logs.")
+            logger.prepend_log_file()
         except Exception as e:
             progress_window.destroy()
             messagebox.showerror(
                 "Error", f"An error occurred while sending notifications: {e}")
-            self.logger.error(f"Error sending notifications: {e}")
+            logger.error(f"Error sending notifications: {e}")
 
     def cancel_scan(self):
         logger.info("Canceling scan.")
