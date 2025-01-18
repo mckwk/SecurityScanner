@@ -2,11 +2,10 @@ import threading
 import tkinter as tk
 from tkinter import filedialog, scrolledtext, ttk
 
-from network_utils.network_scanner import NetworkScanner
-
 import config
 from device_manager import DeviceManager
 from log_and_file_managers.results_exporter import ResultsExporter
+from network_utils.network_scanner import NetworkScanner
 from notification_utils.notification_manager import NotificationManager
 from UI.progress_window import ProgressWindow
 from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
@@ -21,7 +20,8 @@ class GUI:
         self._setup_widgets()
         self.results_exporter = ResultsExporter(
             self.mode_combobox, self.device_tree, self.vulnerability_text)
-        self.network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH, interfaces=config.NETWORK_INTERFACES)
+        self.network_scanner = NetworkScanner(
+            nmap_path=config.NMAP_PATH, interfaces=config.NETWORK_INTERFACES)
         self.vulnerability_checker = VulnerabilityChecker()
         self.notification_manager = NotificationManager(
             self.notification_frame)

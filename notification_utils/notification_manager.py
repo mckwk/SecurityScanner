@@ -7,16 +7,15 @@ import webbrowser
 from datetime import datetime
 from tkinter import messagebox
 
-from plyer import notification
-
 import config
+from log_and_file_managers.common_logger import logger
 from log_and_file_managers.data_manager import DataManager
 from notification_utils.notification_history_window import \
     NotificationHistoryWindow
 from notification_utils.notification_widgets import NotificationWidgets
+from plyer import notification
 from UI.progress_window import ProgressWindow
 from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
-from log_and_file_managers.common_logger import logger
 
 
 class NotificationManager:

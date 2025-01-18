@@ -4,10 +4,9 @@ import tkinter as tk
 from datetime import datetime
 from tkinter import ttk
 
-from vulnerability_utils.keyword_cleaner import KeywordCleaner
-
 import config
 from log_and_file_managers.common_logger import logger
+from vulnerability_utils.keyword_cleaner import KeywordCleaner
 
 
 class DeviceManager:
@@ -120,13 +119,17 @@ class DeviceManager:
     def get_vulnerabilities(self, vendor, OS, device_name):
         if vendor == "Unknown":
             return []
-        logger.info("Searching vulnerabilities for vendor: %s, OS: %s, device_name: %s", vendor, OS, device_name)
+        logger.info(
+            "Searching vulnerabilities for vendor: %s, OS: %s, device_name: %s", vendor, OS, device_name)
         if device_name.lower() != "unknown":
-            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(OS, vendor, device_name)
+            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(
+                OS, vendor, device_name)
         else:
             keyword = self.gui.vulnerability_checker.extract_keyword(vendor)
-            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(OS, keyword)
-        logger.info("Found %d vulnerabilities for vendor: %s, OS: %s, device_name: %s", len(vulnerabilities), vendor, OS, device_name)
+            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(
+                OS, keyword)
+        logger.info("Found %d vulnerabilities for vendor: %s, OS: %s, device_name: %s", len(
+            vulnerabilities), vendor, OS, device_name)
         return vulnerabilities
 
     def insert_device_to_tree(self, device, device_info, vulnerabilities):
@@ -155,7 +158,8 @@ class DeviceManager:
             "device_name": device_info['device_name'],
             "vulnerabilities": vulnerabilities
         }
-        logger.info("Updated device info for MAC %s: %s", mac, self.device_info[mac])
+        logger.info("Updated device info for MAC %s: %s",
+                    mac, self.device_info[mac])
 
     def search_vulnerabilities(self, user_input):
         if not user_input:

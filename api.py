@@ -1,15 +1,15 @@
-from flask import Flask, jsonify, request
-from network_utils.network_scanner import NetworkScanner
-
 import config
 from device_manager import DeviceManager
-from log_and_file_managers.data_manager import DataManager
-from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
+from flask import Flask, jsonify, request
 from log_and_file_managers.common_logger import logger
+from log_and_file_managers.data_manager import DataManager
+from network_utils.network_scanner import NetworkScanner
+from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
 
 app = Flask(__name__)
 
-network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH, interfaces=config.NETWORK_INTERFACES if hasattr(config, 'NETWORK_INTERFACES') else None)
+network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH, interfaces=config.NETWORK_INTERFACES if hasattr(
+    config, 'NETWORK_INTERFACES') else None)
 vulnerability_checker = VulnerabilityChecker()
 device_manager = DeviceManager(None)
 data_manager = DataManager(
@@ -18,6 +18,7 @@ data_manager = DataManager(
     config.HISTORY_FILE,
     config.DEVICE_INFO_FILE
 )
+
 
 @app.route('/full_network_scan', methods=['GET'])
 def full_network_scan():

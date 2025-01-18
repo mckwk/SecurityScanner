@@ -3,11 +3,13 @@ import logging
 import os
 import sys
 
+
 class CustomFilter(logging.Filter):
     def filter(self, record):
         return "Starting new HTTPS connection" not in record.getMessage()
 
-class LoggerManager: # singleton
+
+class LoggerManager:  # singleton
     _instance = None
 
     def __new__(cls, log_file):
@@ -42,12 +44,14 @@ class LoggerManager: # singleton
             # File handler for log file
             file_handler = logging.FileHandler(self.log_file)
             file_handler.setLevel(logging.DEBUG)
-            file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            file_handler.setFormatter(logging.Formatter(
+                '%(asctime)s - %(levelname)s - %(message)s'))
 
             # Stream handler for terminal output
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setLevel(logging.DEBUG)
-            console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            console_handler.setFormatter(logging.Formatter(
+                '%(asctime)s - %(levelname)s - %(message)s'))
 
             self.logger.addHandler(stream_handler)
             self.logger.addHandler(file_handler)

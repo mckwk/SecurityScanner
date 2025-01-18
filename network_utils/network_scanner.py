@@ -1,10 +1,11 @@
 import socket
-import netifaces
-import nmap
-from mac_vendor_lookup import MacLookup
 
 import config
+import netifaces
+import nmap
 from log_and_file_managers.common_logger import logger
+from mac_vendor_lookup import MacLookup
+
 
 class NetworkScanner:
     def __init__(self, nmap_path, interfaces=None):
@@ -66,18 +67,18 @@ class NetworkScanner:
             accuracy = host['osclass'][0].get('accuracy')
             return float(accuracy) if accuracy is not None else None
         return None
-    
+
     def _get_local_ip(self):
         local_ip = socket.gethostbyname(socket.gethostname())
         logger.info("Local IP address: %s", local_ip)
         return local_ip
-    
+
     def _discover_network_address(self):
         if self.interfaces:
             return self._discover_network_address_from_interfaces()
         else:
             return self._discover_network_address_default()
-    
+
     def _discover_network_address_default(self):
         def get_local_ip():
             local_ip = socket.gethostbyname(socket.gethostname())
@@ -99,9 +100,10 @@ class NetworkScanner:
         def get_local_ip(iface):
             addrs = netifaces.ifaddresses(iface)
             local_ip = addrs[netifaces.AF_INET][0]['addr']
-            logger.info("Local IP address for interface %s: %s", iface, local_ip)
+            logger.info("Local IP address for interface %s: %s",
+                        iface, local_ip)
             return local_ip
-        
+
         try:
             local_ips = [get_local_ip(iface) for iface in self.interfaces]
             netmask = self._get_netmask(local_ips[0])
@@ -112,10 +114,6 @@ class NetworkScanner:
         except Exception as e:
             logger.error("Unable to determine network address: %s", e)
             raise RuntimeError(f"Unable to determine network address: {e}")
-
-
-    
-
 
     def _get_netmask(self, local_ip):
         try:

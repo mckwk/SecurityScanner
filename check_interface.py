@@ -1,5 +1,6 @@
 import netifaces
 
+
 def list_interfaces():
     interfaces = netifaces.interfaces()
     for iface in interfaces:
@@ -10,5 +11,6 @@ def list_interfaces():
             print(f"  IP Address: {ip_info['addr']}")
             print(f"  Netmask: {ip_info['netmask']}")
             print()
+
 
 list_interfaces()
