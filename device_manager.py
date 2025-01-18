@@ -97,6 +97,7 @@ class DeviceManager:
             f"CVE ID: {cve_id}\nDescription: {description}\nSeverity: {severity}\nPublished Date: {published_date}\n{'-' * 80}\n")
 
     def process_device(self, device):
+        logger.info("Processing device: %s", device)
         vendor, OS, mac = device['vendor'], device['OS'], device['mac']
         device_info = self.get_device_info(mac, device)
         vulnerabilities = self.get_vulnerabilities(
@@ -119,13 +120,19 @@ class DeviceManager:
     def get_vulnerabilities(self, vendor, OS, device_name):
         if vendor == "Unknown":
             return []
+        logger.info("Searching vulnerabilities for vendor: %s, OS: %s, device_name: %s", vendor, OS, device_name)
         if device_name.lower() != "unknown":
-            return self.gui.vulnerability_checker.search_vulnerabilities(OS, vendor, device_name)
-        return self.gui.vulnerability_checker.search_vulnerabilities(OS, self.gui.vulnerability_checker.extract_keyword(vendor))
+            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(OS, vendor, device_name)
+        else:
+            keyword = self.gui.vulnerability_checker.extract_keyword(vendor)
+            vulnerabilities = self.gui.vulnerability_checker.search_vulnerabilities(OS, keyword)
+        logger.info("Found %d vulnerabilities for vendor: %s, OS: %s, device_name: %s", len(vulnerabilities), vendor, OS, device_name)
+        return vulnerabilities
 
     def insert_device_to_tree(self, device, device_info, vulnerabilities):
         self.gui.device_tree.insert("", tk.END, values=(
             device['ip'], device['mac'], device['vendor'], device['OS'], device_info['device_name'], str(vulnerabilities)))
+        logger.info("Inserted device into tree: %s", device)
 
     def update_notification_list(self, vendor, OS, device_name):
         cleaned_vendor = self.keyword_cleaner.clean_vendor_name(vendor)
@@ -136,8 +143,9 @@ class DeviceManager:
             device_name
         ]
         for keyword in keyword_combinations:
-            if keyword.lower() != "unknown" and keyword not in self.notification_list:
+            if keyword.lower() != "unknown" and "unknown" not in keyword.lower() and keyword not in self.notification_list:
                 self.notification_list.append(keyword)
+                logger.info("Added keyword to notification list: %s", keyword)
 
     def update_device_info(self, mac, device, device_info, vulnerabilities):
         self.device_info[mac] = {
@@ -147,6 +155,7 @@ class DeviceManager:
             "device_name": device_info['device_name'],
             "vulnerabilities": vulnerabilities
         }
+        logger.info("Updated device info for MAC %s: %s", mac, self.device_info[mac])
 
     def search_vulnerabilities(self, user_input):
         if not user_input:
