@@ -7,7 +7,6 @@ import webbrowser
 from datetime import datetime
 from tkinter import messagebox
 
-import config
 from log_and_file_managers.common_logger import logger
 from log_and_file_managers.data_manager import DataManager
 from notification_utils.notification_history_window import \

@@ -1,6 +1,6 @@
 import threading
 import tkinter as tk
-from tkinter import filedialog, scrolledtext, ttk
+from tkinter import scrolledtext, ttk
 
 import config
 from device_manager import DeviceManager

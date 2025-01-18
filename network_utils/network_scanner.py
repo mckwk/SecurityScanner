@@ -1,6 +1,5 @@
 import socket
 
-import config
 import netifaces
 import nmap
 from log_and_file_managers.common_logger import logger

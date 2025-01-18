@@ -1,4 +1,3 @@
-import config
 from log_and_file_managers.common_logger import logger
 from ttkthemes import ThemedTk
 from UI.gui import GUI
