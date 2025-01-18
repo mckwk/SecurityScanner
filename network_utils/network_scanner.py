@@ -43,7 +43,7 @@ class NetworkScanner:
                 'hostname': self.nm[host].hostname(),
                 'state': self.nm[host].state(),
                 'os': self.nm[host]['osclass'][0]['osfamily'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
-                'os_accuracy': self.nm[host]['osclass'][0]['accuracy'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
+                'os_accuracy': self._get_os_accuracy(self.nm[host]),
                 'os_vendor': self.nm[host]['osclass'][0]['vendor'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
                 'os_version': self.nm[host]['osclass'][0]['osgen'] if 'osclass' in self.nm[host] and len(self.nm[host]['osclass']) > 0 else 'Unknown',
                 'services': []
@@ -64,6 +64,12 @@ class NetworkScanner:
             devices.append(device_info)
 
         return devices
+
+    def _get_os_accuracy(self, host):
+        if 'osclass' in host and len(host['osclass']) > 0:
+            accuracy = host['osclass'][0].get('accuracy')
+            return float(accuracy) if accuracy is not None else None
+        return None
 
     def _discover_network_address(self):
         try:
