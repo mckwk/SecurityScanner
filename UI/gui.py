@@ -21,7 +21,7 @@ class GUI:
         self._setup_widgets()
         self.results_exporter = ResultsExporter(
             self.mode_combobox, self.device_tree, self.vulnerability_text)
-        self.network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH)
+        self.network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH, interfaces=config.NETWORK_INTERFACES)
         self.vulnerability_checker = VulnerabilityChecker()
         self.notification_manager = NotificationManager(
             self.notification_frame)

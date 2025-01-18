@@ -9,7 +9,7 @@ from vulnerability_utils.vulnerability_checker import VulnerabilityChecker
 
 app = Flask(__name__)
 
-network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH)
+network_scanner = NetworkScanner(nmap_path=config.NMAP_PATH, interfaces=config.NETWORK_INTERFACES if hasattr(config, 'NETWORK_INTERFACES') else None)
 vulnerability_checker = VulnerabilityChecker()
 device_manager = DeviceManager(None)
 data_manager = DataManager(

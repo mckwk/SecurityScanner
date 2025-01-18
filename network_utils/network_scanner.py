@@ -12,10 +12,11 @@ logger = logger_manager.get_logger()
 
 
 class NetworkScanner:
-    def __init__(self, nmap_path):
+    def __init__(self, nmap_path, interfaces=None):
         self.nmap_path = nmap_path
         self.mac_lookup = MacLookup()
         self.nm = nmap.PortScanner(nmap_search_path=self.nmap_path)
+        self.interfaces = interfaces
         logger.info("NetworkScanner initialized with nmap path: %s", nmap_path)
 
     def scan_network(self, network=None):
@@ -70,10 +71,26 @@ class NetworkScanner:
             accuracy = host['osclass'][0].get('accuracy')
             return float(accuracy) if accuracy is not None else None
         return None
-
+    
+    def _get_local_ip(self):
+        local_ip = socket.gethostbyname(socket.gethostname())
+        logger.info("Local IP address: %s", local_ip)
+        return local_ip
+    
     def _discover_network_address(self):
+        if self.interfaces:
+            return self._discover_network_address_from_interfaces()
+        else:
+            return self._discover_network_address_default()
+    
+    def _discover_network_address_default(self):
+        def get_local_ip():
+            local_ip = socket.gethostbyname(socket.gethostname())
+            logger.info("Local IP address: %s", local_ip)
+            return local_ip
+
         try:
-            local_ip = self._get_local_ip()
+            local_ip = get_local_ip()
             netmask = self._get_netmask(local_ip)
             if netmask:
                 return self._calculate_network_address(local_ip, netmask)
@@ -83,10 +100,27 @@ class NetworkScanner:
             logger.error("Unable to determine network address: %s", e)
             raise RuntimeError(f"Unable to determine network address: {e}")
 
-    def _get_local_ip(self):
-        local_ip = socket.gethostbyname(socket.gethostname())
-        logger.info("Local IP address: %s", local_ip)
-        return local_ip
+    def _discover_network_address_from_interfaces(self):
+        def get_local_ip(iface):
+            addrs = netifaces.ifaddresses(iface)
+            local_ip = addrs[netifaces.AF_INET][0]['addr']
+            logger.info("Local IP address for interface %s: %s", iface, local_ip)
+            return local_ip
+        
+        try:
+            local_ips = [get_local_ip(iface) for iface in self.interfaces]
+            netmask = self._get_netmask(local_ips[0])
+            if netmask:
+                return self._calculate_network_address(local_ips[0], netmask)
+            else:
+                raise RuntimeError("Unable to determine network address")
+        except Exception as e:
+            logger.error("Unable to determine network address: %s", e)
+            raise RuntimeError(f"Unable to determine network address: {e}")
+
+
+    
+
 
     def _get_netmask(self, local_ip):
         try:
