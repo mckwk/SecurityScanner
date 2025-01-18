@@ -70,7 +70,7 @@ python main.py
 
 - **API**
 ```bash
-python app.py
+python api.py
 ```
 
 
