@@ -29,7 +29,7 @@ def full_network_scan():
         return jsonify(devices)
     except Exception as e:
         logger.error(f"Error during full network scan: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error occurred"}), 500
 
 
 @app.route('/network_scan', methods=['GET'])
@@ -44,7 +44,7 @@ def network_scan():
         return jsonify(devices)
     except Exception as e:
         logger.error(f"Error during network scan: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error occurred"}), 500
 
 
 @app.route('/search_vulnerabilities', methods=['POST'])
@@ -58,7 +58,7 @@ def search_vulnerabilities():
         return jsonify(vulnerabilities)
     except Exception as e:
         logger.error(f"Error during vulnerability search: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error occurred"}), 500
 
 
 @app.route('/notification_history', methods=['GET'])
@@ -68,7 +68,7 @@ def notification_history():
         return jsonify(history)
     except Exception as e:
         logger.error(f"Error loading notification history: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error occurred"}), 500
 
 
 @app.route('/scan_vulnerabilities', methods=['POST'])
@@ -81,7 +81,7 @@ def scan_vulnerabilities():
         return jsonify(vulnerabilities)
     except Exception as e:
         logger.error(f"Error during vulnerability scan: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error occurred"}), 500
 
 
 @app.route('/scan_and_search_vulnerabilities', methods=['GET'])
@@ -98,7 +98,7 @@ def scan_and_search_vulnerabilities():
         return jsonify(devices)
     except Exception as e:
         logger.error(f"Error during scan and search vulnerabilities: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error occurred"}), 500
 
 
 if __name__ == '__main__':
