@@ -49,11 +49,13 @@ LOG_FILE = os.path.join(DATA_FOLDER, 'notification_manager.log')
 HISTORY_FILE = os.path.join(DATA_FOLDER, 'notification_history.json')
 PRODUCT_IDS_FILE = os.path.join(DATA_FOLDER, "product_ids.json")
 NMAP_PATH = [r"D:\Nmap\nmap.exe"] # Your path goes here
+# NMAP_PATH = [r"/usr/bin/nmap"]
 
 # Optional parameter
 # check the interfaces' names by running the following command in the terminal: python check_interface.py
 # and replace the value of NETWORK_INTERFACES with the interface name(s) you want to use, 
 # e.g. for Windows: "{12345678-1234-1234-1234-1234567890ab}"
+# e.g. for Linux: "enp0s3"
 NETWORK_INTERFACES = ["{12345678-1234-1234-1234-1234567890ab}"]
 ```
 
@@ -62,6 +64,8 @@ NETWORK_INTERFACES = ["{12345678-1234-1234-1234-1234567890ab}"]
 
 
 ### Running the Application
+
+If used on a Linux-based system, make sure you execute the file with root privileges.
 
 - **GUI mode**
 ```bash
