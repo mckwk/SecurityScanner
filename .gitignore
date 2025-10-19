@@ -1,15 +1,98 @@
-# Ignore Python cache files
+# General Python .gitignore
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
 
-# Ignore user files
-user_data/
-*.log
-.vscode/launch.json
+# C extensions
+*.pyd
 
-# Ignore virtual environment
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-wheel-metadata/
+share/python-wheels/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# Pyenv
+.python-version
+
+# Virtualenvs
+venv/
+ENV/
+env/
+.env/
 .venv/
+env.bak/
+venv.bak/
 
-# Ignore vscode settings
+# PyInstaller
+*.manifest
+*.spec
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pytype / mypy / pyre / pytest
+.pytype/
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytest_cache/
+
+# Profiling
+.prof
+prof/
+
+# Logs and local data
+*.log
+user_data/
+
+# IDEs and editors
 .vscode/
+.vscode/launch.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# dotenv
+.env
+.env.*
